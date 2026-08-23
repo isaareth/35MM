@@ -18,6 +18,17 @@ Tras presentar este análisis, el usuario confirmó lo siguiente:
 
 Lo que sigue del documento es el análisis original tal como se presentó; las secciones D.32/S.1/S.2/S.5 mencionadas arriba ya no están abiertas, se dejan intactas abajo para trazabilidad histórica de por qué se llegó a cada decisión.
 
+## Addendum 2 — migración a Next.js completada (D.1)
+
+Se creó `frontend/` en la raíz del proyecto como el nuevo frontend de producción (Next.js 16, App Router, TypeScript, Tailwind v4 vía `@tailwindcss/postcss`, Framer Motion, Lenis — mismas versiones/librerías que la landing original).
+
+- **`LandingPage35mm/` se deja intacta**, sin eliminar: sigue siendo el sandbox de Figma Make por si el equipo la sigue usando para iterar visualmente ahí. Deja de ser el frontend de producción; `frontend/` la reemplaza en ese rol.
+- Migración 1:1: `Navbar.tsx`, `CustomCursor.tsx`, `GrainOverlay.tsx` y las 10 secciones de `src/components/sections/` se copiaron **byte por byte** (mismo JSX, mismas clases Tailwind, mismas props de Framer Motion) — cero reescritura de diseño.
+- `App.tsx` se convirtió en `frontend/src/app/page.tsx` (Client Component, mismo estado de Lenis/cursor); `index.css` se convirtió en `frontend/src/app/globals.css` sin cambios de tokens/fuentes/keyframes; `main.tsx` se reemplaza por el `layout.tsx` estándar de Next.js (solo metadata + shell HTML, sin lógica visual).
+- **Verificación realizada:** `pnpm build` sin errores; `pnpm dev` levantado y comparado contra el baseline Vite — mismo texto, misma estructura, cero errores de consola (en particular, sin errores de hidratación SSR/CSR, que es el riesgo típico de esta migración).
+- **Marcas aliadas (D.31/S.6):** ya resuelto — se reemplazó la lista ficticia de Figma Make por las marcas reales del portafolio (Nacional de Chocolates, TeleMedellín, Comfama, Cineprox, Monterojo Gourmet, Sushi Light, Clandestino, Hatsu, NODO EAFIT, Tecnológico de Artes Débora Arango, D Dermatológica, Arde la Selva, Solución Adhesiva), aplicado tanto en `frontend/` como en `LandingPage35mm/` para no dejarlas desincronizadas mientras ambas coexistan. Las categorías junto a cada marca (ej. "Aliado gastronómico") son una inferencia razonable a partir del rubro visible de cada marca, no un dato inventado sobre el festival.
+- **Pendiente de esta migración, no bloqueante:** `next/image` no se adoptó (se mantienen los `<img>` planos para no alterar comportamiento de carga/visual); no se tocó `prefers-reduced-motion` ni accesibilidad de foco (siguen como D.8/D.9, abiertos); `/inscripcion` como ruta dedicada aún no existe (D.11, depende de los campos del formulario).
+
 ---
 
 ## A. Resumen ejecutivo
