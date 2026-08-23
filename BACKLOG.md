@@ -4,8 +4,9 @@ Estado detallado y justificación de cada decisión en [`35mm_specs/11_AUDIT_GAP
 
 ## Bloqueadores para producción real
 
-- [ ] **Provisionar Supabase PostgreSQL** y setear `DATABASE_URL` en `backend/.env` (hoy corre en SQLite local).
-- [ ] **API key real de Resend** (`EMAIL_API_KEY`) y cambiar `EMAIL_PROVIDER=resend` en producción (hoy el correo solo se loguea en consola).
+- [x] **Provisionar Supabase PostgreSQL** — conectado y migrado (2026-08-23). Importante: usar la cadena del **Session Pooler** (`aws-0-us-east-2.pooler.supabase.com:5432`), no la conexión directa — esta última resuelve a una IP IPv6 que muchas redes no alcanzan.
+- [x] **API key real de Resend** — conectada y probada.
+- [ ] **Verificar un dominio propio en Resend** (resend.com/domains). Hoy el envío funciona con `onboarding@resend.dev`, que en modo sandbox **solo puede mandar correos a la dirección dueña de la cuenta de Resend** (`sifloress@eafit.edu.co`) — no puede mandarle nada a un líder de equipo real. `eafit.edu.co` existe como remitente pero **no está verificado** (se probó y Resend lo rechaza); hay que verificar `eafit.edu.co` (requiere acceso DNS de EAFIT) o un subdominio/dominio propio de 35mm antes de poder enviar confirmaciones a inscritos reales.
 - [ ] **Desplegar `frontend/` en Vercel** (root directory: `frontend/`).
 - [ ] **Desplegar `backend/` en Railway o Render** (root directory: `backend/`), con `DEBUG=False`, `DJANGO_ALLOWED_HOSTS` y `CORS_ALLOWED_ORIGINS` apuntando al dominio real de Vercel.
 - [ ] Setear `NEXT_PUBLIC_API_URL` en Vercel apuntando al backend ya desplegado.
