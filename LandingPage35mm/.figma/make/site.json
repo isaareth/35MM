@@ -1,0 +1,10 @@
+{
+  "description": "Showcases the 35mm short film festival with dynamic visuals, interactive timelines, and engaging content to inspire and inform filmmakers and audiences.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}

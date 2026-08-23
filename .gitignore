@@ -1,0 +1,18 @@
+node_modules/
+dist/
+build/
+.next/
+.cache/
+.env
+.env.*
+!.env.example
+*.tsbuildinfo
+*.log
+logs/
+
+# Python / Django (backend, once scaffolded)
+__pycache__/
+*.pyc
+.venv/
+venv/
+staticfiles/

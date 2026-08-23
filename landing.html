@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>35mm Festival de Cortos</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&amp;family=EB+Garamond:ital,wght@1,400&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "error-container": "#93000a",
+                      "secondary": "#dcb8ff",
+                      "outline": "#8e9192",
+                      "surface-dim": "#141313",
+                      "on-primary-fixed-variant": "#474746",
+                      "secondary-fixed": "#efdbff",
+                      "on-tertiary-container": "#009292",
+                      "on-secondary-container": "#dcb7ff",
+                      "surface-tint": "#c8c6c5",
+                      "on-error": "#690005",
+                      "inverse-on-surface": "#313030",
+                      "on-secondary-fixed-variant": "#6700b5",
+                      "surface-container-highest": "#353434",
+                      "primary-container": "#1a1a1a",
+                      "outline-variant": "#444748",
+                      "surface-bright": "#3a3939",
+                      "on-background": "#e5e2e1",
+                      "primary-fixed-dim": "#c8c6c5",
+                      "inverse-primary": "#5f5e5e",
+                      "on-error-container": "#ffdad6",
+                      "surface-container-high": "#2b2a2a",
+                      "tertiary-fixed": "#00fbfb",
+                      "tertiary-container": "#001e1e",
+                      "primary": "#c8c6c5",
+                      "tertiary-fixed-dim": "#00dddd",
+                      "on-secondary-fixed": "#2c0051",
+                      "on-surface-variant": "#c4c7c7",
+                      "secondary-fixed-dim": "#dcb8ff",
+                      "on-secondary": "#480081",
+                      "inverse-surface": "#e5e2e1",
+                      "background": "#141313",
+                      "surface-variant": "#353434",
+                      "surface-container-low": "#1c1b1b",
+                      "on-primary-container": "#848282",
+                      "error": "#ffb4ab",
+                      "on-surface": "#e5e2e1",
+                      "on-tertiary-fixed": "#002020",
+                      "surface-container": "#201f1f",
+                      "on-tertiary": "#003737",
+                      "surface-container-lowest": "#0e0e0e",
+                      "secondary-container": "#7701d0",
+                      "on-primary": "#313030",
+                      "on-tertiary-fixed-variant": "#004f4f",
+                      "on-primary-fixed": "#1c1b1b",
+                      "surface": "#141313",
+                      "tertiary": "#00dddd",
+                      "primary-fixed": "#e5e2e1"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "unit": "4px",
+                      "gutter": "24px",
+                      "container-max": "1280px",
+                      "margin-mobile": "20px",
+                      "margin-desktop": "64px"
+              },
+              "fontFamily": {
+                      "quote-accent": [
+                              "ebGaramond"
+                      ],
+                      "body-md": [
+                              "jetbrainsMono"
+                      ],
+                      "label-sm": [
+                              "jetbrainsMono"
+                      ],
+                      "display-xl": [
+                              "bricolageGrotesque"
+                      ],
+                      "headline-lg-mobile": [
+                              "bricolageGrotesque"
+                      ],
+                      "headline-lg": [
+                              "bricolageGrotesque"
+                      ]
+              },
+              "fontSize": {
+                      "quote-accent": [
+                              "24px",
+                              {
+                                      "lineHeight": "1.4",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "body-md": [
+                              "16px",
+                              {
+                                      "lineHeight": "1.6",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "label-sm": [
+                              "12px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "display-xl": [
+                              "84px",
+                              {
+                                      "lineHeight": "1.0",
+                                      "letterSpacing": "-0.04em",
+                                      "fontWeight": "800"
+                              }
+                      ],
+                      "headline-lg-mobile": [
+                              "32px",
+                              {
+                                      "lineHeight": "1.1",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "headline-lg": [
+                              "48px",
+                              {
+                                      "lineHeight": "1.1",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+      </script>
+<style>
+        body {
+            background-color: theme('colors.background');
+            color: theme('colors.on-background');
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+            background-attachment: fixed;
+        }
+        
+        /* Experimental Brutalism Borders */
+        .film-frame {
+            border: 2px solid theme('colors.outline-variant');
+            position: relative;
+        }
+        .film-frame::before, .film-frame::after {
+            content: '';
+            position: absolute;
+            left: -8px;
+            width: 4px;
+            height: 12px;
+            background-color: theme('colors.outline-variant');
+        }
+        .film-frame::before { top: 10%; }
+        .film-frame::after { bottom: 10%; }
+
+        .film-frame-right::before, .film-frame-right::after {
+            left: auto;
+            right: -8px;
+        }
+        
+        .hard-shadow-primary {
+            box-shadow: 4px 4px 0px 0px theme('colors.tertiary');
+        }
+        .hard-shadow-secondary {
+            box-shadow: -4px 4px 0px 0px theme('colors.secondary');
+        }
+        
+        .glitch-text {
+            text-shadow: 2px 0 theme('colors.tertiary'), -2px 0 theme('colors.secondary');
+        }
+        
+        /* Custom Scrollbar for horizontal lists */
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* Entrance Animations */
+        .fade-in-up {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.8s ease-out forwards;
+        }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .delay-100 { animation-delay: 100ms; }
+        .delay-200 { animation-delay: 200ms; }
+        .delay-300 { animation-delay: 300ms; }
+    </style>
+</head>
+<body class="font-body-md antialiased overflow-x-hidden selection:bg-tertiary selection:text-background">
+<!-- TopNavBar Component -->
+<nav class="flex justify-between items-center w-full px-margin-desktop py-4 sticky top-0 z-50 bg-background/90 backdrop-blur-sm border-b-2 border-outline-variant">
+<a class="text-headline-lg font-headline-lg font-bold text-secondary tracking-tighter hover:opacity-80 transition-opacity" href="#">
+            35mm
+        </a>
+<div class="hidden md:flex gap-6 items-center">
+<a class="text-on-surface-variant font-label-sm hover:text-tertiary transition-colors duration-200 uppercase tracking-widest" href="#que-es">¿Qué es?</a>
+<a class="text-on-surface-variant font-label-sm hover:text-tertiary transition-colors duration-200 uppercase tracking-widest" href="#ediciones">Ediciones</a>
+<a class="text-on-surface-variant font-label-sm hover:text-tertiary transition-colors duration-200 uppercase tracking-widest" href="#ganadores">Ganadores</a>
+<a class="text-on-surface-variant font-label-sm hover:text-tertiary transition-colors duration-200 uppercase tracking-widest" href="#reglas">Reglas</a>
+<a class="text-on-surface-variant font-label-sm hover:text-tertiary transition-colors duration-200 uppercase tracking-widest" href="#acerca-de">Acerca de</a>
+</div>
+<a class="hidden md:inline-block bg-secondary-container text-on-surface font-label-sm px-6 py-2 rounded-none hover:bg-secondary hover:text-background transition-colors duration-200 uppercase font-bold border 2px border-transparent hover:border-tertiary" href="#inscribirse">
+            Inscribirse
+        </a>
+<button class="md:hidden text-on-surface-variant">
+<span class="material-symbols-outlined text-2xl">menu</span>
+</button>
+</nav>
+<main>
+<!-- Hero Section -->
+<section class="relative min-h-[921px] flex flex-col justify-center items-center px-margin-desktop py-gutter overflow-hidden fade-in-up">
+<!-- Decorative Background Elements -->
+<div class="absolute top-1/4 left-[-10%] w-[40%] h-[50%] bg-secondary/10 blur-[120px] rounded-full mix-blend-screen pointer-events-none"></div>
+<div class="absolute bottom-[-10%] right-[-10%] w-[50%] h-[60%] bg-tertiary/10 blur-[120px] rounded-full mix-blend-screen pointer-events-none"></div>
+<div class="z-10 text-center flex flex-col items-center gap-8 max-w-4xl mx-auto">
+<div class="inline-block bg-surface-container-high px-4 py-2 border border-outline-variant font-label-sm text-tertiary uppercase tracking-widest mb-4">
+                    Tercera Edición • 2026
+                </div>
+<h1 class="text-display-xl font-display-xl text-primary mb-2 glitch-text uppercase">
+                    35mm
+                </h1>
+<p class="text-headline-lg-mobile md:text-headline-lg font-headline-lg-mobile md:font-headline-lg text-secondary uppercase max-w-2xl mb-8 leading-tight">
+                    Festival Estudiantil de Cortometrajes
+                </p>
+<a class="bg-secondary text-background font-label-sm px-8 py-4 rounded-none hover:bg-tertiary transition-all duration-300 uppercase font-bold text-lg hard-shadow-primary hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-none inline-flex items-center gap-2" href="#inscribirse">
+                    Inscribirse <span class="material-symbols-outlined">arrow_forward</span>
+</a>
+</div>
+<!-- Tech markers -->
+<div class="absolute left-4 bottom-4 font-label-sm text-outline-variant rotate-[-90deg] origin-bottom-left">REC [00:00:00]</div>
+<div class="absolute right-4 top-24 font-label-sm text-outline-variant">ISO 800</div>
+</section>
+<!-- ¿Qué es? Section -->
+<section class="py-24 px-margin-desktop relative border-t-2 border-outline-variant fade-in-up delay-100" id="que-es">
+<div class="max-w-container-max mx-auto grid grid-cols-1 lg:grid-cols-12 gap-gutter items-center">
+<div class="lg:col-span-5 lg:col-start-2 order-2 lg:order-1 relative">
+<div class="film-frame p-4 bg-surface-container-low hard-shadow-secondary rotate-[-2deg]">
+<img class="w-full h-auto object-cover filter grayscale contrast-125 mix-blend-luminosity" data-alt="A gritty, high-contrast black and white cinematic still of a vintage film reel and a clapperboard on an industrial textured table, lit by a harsh overhead spotlight. The overall mood is raw and behind-the-scenes, fitting an experimental brutalist design aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBLHWAyckcHYjkEtfL0mX4-KoMrxIwvhD_LuziS8oOIxBflXF97-iIu8xsxuVGrwpONdwhWFtVzVC9L60IDpeAstujDER8jM3UI6oHNzzH6QpvPQCtWNuhzE4OwPRuNrFL2NpORfu4ZT57aRkL2EIyzkz5-liy_HYso4VqmfsWNBG2nL_UqEqdT-AiMxdA1IeCsX3SZtUXoMdz-Q47_JT4q6B5ugevMMFBNnut6DMzSYpYo6Qe244a-"/>
+<div class="absolute inset-0 bg-secondary/20 mix-blend-overlay pointer-events-none"></div>
+</div>
+</div>
+<div class="lg:col-span-5 lg:col-start-8 order-1 lg:order-2 flex flex-col gap-6">
+<h2 class="text-headline-lg font-headline-lg text-tertiary uppercase">Sobre el Evento</h2>
+<p class="text-body-md font-body-md text-on-surface-variant">
+                        Es un festival por estudiantes para estudiantes que celebra y explora la creatividad y la imaginación a través de cortometrajes.
+                    </p>
+<p class="text-body-md font-body-md text-on-surface-variant">
+                        Además, busca ser un espacio de aprendizaje y conexión entre la industria y los estudiantes, ofreciendo talleres, conferencias y capacitaciones.
+                    </p>
+<div class="mt-4 p-4 border border-outline border-l-4 border-l-secondary bg-surface-container-highest">
+<h3 class="font-label-sm text-secondary uppercase mb-2">Público Objetivo</h3>
+<p class="font-quote-accent text-quote-accent text-primary italic">
+                            Estudiantes de educación superior del Área Metropolitana del Valle de Aburrá.
+                        </p>
+</div>
+</div>
+</div>
+</section>
+<!-- Ediciones Pasadas Section -->
+<section class="py-24 px-margin-mobile md:px-0 relative border-t-2 border-outline-variant overflow-hidden fade-in-up delay-200" id="ediciones">
+<div class="md:px-margin-desktop max-w-container-max mx-auto mb-12 flex justify-between items-end">
+<h2 class="text-headline-lg font-headline-lg text-primary uppercase glitch-text">Ediciones Pasadas</h2>
+<span class="font-label-sm text-outline-variant hidden md:block">/// HISTÓRICO</span>
+</div>
+<div class="flex overflow-x-auto gap-8 pb-8 px-margin-mobile md:px-margin-desktop hide-scrollbar snap-x">
+<!-- Edicion Card 1 -->
+<div class="min-w-[300px] md:min-w-[400px] flex-shrink-0 snap-center film-frame bg-surface-container p-2 group hover:bg-surface-container-high transition-colors cursor-pointer">
+<div class="relative overflow-hidden mb-4 border border-outline-variant">
+<div class="aspect-[2/3] bg-surface-container-highest flex items-center justify-center">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 filter grayscale group-hover:grayscale-0" data-alt="Abstract poster design for a short film festival featuring stark typography and a high-contrast magenta and deep black color palette. The aesthetic is raw, grainy, and experimental brutalism. A chaotic arrangement of geometric shapes." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAwSRP3786yCXLsnhwJbV3NA-cOkVi0v4qw6q5U6ziSI3-QkkOZaPKz7s9w-_fR7ZmPPo2zRbIAQDWjbv_0eMFOfb-kEbL96Vfs-KWG_b_wtf9CkF7-AJ43XWBbs0Rf9G_AR5KqNp8Ns_aLiTrFTRQwZcTvrDSuwodi2uZja6plyPjIw7qbr52h2yv4rL4HVLFy1qVG2rPNJlyt-kyoVUaeytsSPf_nVaOjznhYvd7VFyHmQ3XCdzfR"/>
+</div>
+<div class="absolute top-2 left-2 bg-background text-tertiary font-label-sm px-2 py-1 uppercase border border-tertiary">
+                            1ra Edición
+                        </div>
+</div>
+<h3 class="font-label-sm text-primary uppercase text-lg mb-1">El Origen</h3>
+<p class="text-on-surface-variant text-sm font-body-md">2024 • Auditorio Fundadores</p>
+</div>
+<!-- Edicion Card 2 -->
+<div class="min-w-[300px] md:min-w-[400px] flex-shrink-0 snap-center film-frame bg-surface-container p-2 group hover:bg-surface-container-high transition-colors cursor-pointer translate-y-4">
+<div class="relative overflow-hidden mb-4 border border-outline-variant">
+<div class="aspect-[2/3] bg-surface-container-highest flex items-center justify-center">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 filter grayscale group-hover:grayscale-0" data-alt="Experimental poster art for a film festival. A heavily distorted, glitchy image of an eye looking through a camera lens. Colors are dominated by harsh cyan and deep charcoal. Grainy, textured, brutalist aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuANHW0z9KPLazJZK4uxCQ9wAbZ1UMBkNNdVmXPHjVrdILgUrLYVOS5hNgwhBjJrLfSI8wDiqxXkXRxe6HV6eOxrnUrfOB0Pva0cH52kAVjn24_XjWqdjAEQtsaK0SDkgd6oNXbjtkrB50w9cOTRqd5xs1AssAGudIWUa0AZEDMz81vpjwRvtvus_TOo3ZJoxkqn70In3U2cgpcIbK-XW7Uc1mi-_Jy_zBiPpM9TTMgzPjErcYTsHdUC"/>
+</div>
+<div class="absolute top-2 left-2 bg-background text-secondary font-label-sm px-2 py-1 uppercase border border-secondary">
+                            2da Edición
+                        </div>
+</div>
+<h3 class="font-label-sm text-primary uppercase text-lg mb-1">La Expansión</h3>
+<p class="text-on-surface-variant text-sm font-body-md">2025 • Bloque 38</p>
+</div>
+<!-- Spacer for scroll -->
+<div class="min-w-[20px] md:min-w-[64px] flex-shrink-0"></div>
+</div>
+</section>
+<!-- Marcas Section -->
+<section class="py-12 border-y-2 border-outline-variant bg-surface-container-highest relative overflow-hidden fade-in-up delay-300">
+<!-- Animated scrolling strip -->
+<div class="flex whitespace-nowrap opacity-50 text-outline-variant font-label-sm items-center gap-12 py-4">
+<span class="text-2xl font-bold uppercase">Apoyan:</span>
+<span class="text-xl">UNIVERSIDAD EAFIT</span>
+<span class="material-symbols-outlined text-xs">close</span>
+<span class="text-xl text-secondary">TVU</span>
+<span class="material-symbols-outlined text-xs">close</span>
+<span class="text-xl">CENTRO CULTURAL</span>
+<span class="material-symbols-outlined text-xs">close</span>
+<span class="text-xl">UNIVERSIDAD EAFIT</span>
+<span class="material-symbols-outlined text-xs">close</span>
+<span class="text-xl text-secondary">TVU</span>
+<span class="material-symbols-outlined text-xs">close</span>
+<span class="text-xl">CENTRO CULTURAL</span>
+</div>
+</section>
+<!-- Ganadores Section -->
+<section class="py-24 px-margin-desktop relative border-b-2 border-outline-variant fade-in-up" id="ganadores">
+<div class="max-w-container-max mx-auto">
+<div class="mb-16 border-l-4 border-tertiary pl-6">
+<h2 class="text-headline-lg font-headline-lg text-primary uppercase">Ganadores Recientes</h2>
+<p class="text-on-surface-variant font-body-md mt-2 max-w-xl">Lo mejor del talento emergente. Cortos que rompieron esquemas.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+<!-- Ganador 1 -->
+<div class="group relative">
+<div class="aspect-video bg-surface-container border border-outline-variant overflow-hidden relative">
+<img class="w-full h-full object-cover filter grayscale group-hover:grayscale-0 transition-all duration-500" data-alt="A dramatic movie still of a lonely figure standing under a flickering streetlamp in a dark, rainy city alley. High contrast black and white with a subtle cyan tint. Experimental cinematic mood." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAAZEIg4hHQCoNeiE0Y7yqyNpXYHjFyL8sFfaHgyfz2V_TD5X-b6WoauIZ7q_2Vqejr2FUDB7G4FrWib0tc2hHV8VNHSj4YgFp3c5j5YSssnbgMNRcVrL_9rH9XvAi4lb5IoFlYvZDtgnmNlsdWVRjqE90Xcr2Z6vlX226F0RPCDGc7U87kfApUKs4JXvBmKimi1RPCeWhPmP5d2ZS0lHgMRc40J3fEZobjn-xrV53usGIVV1Mh0kvn"/>
+<div class="absolute inset-0 bg-background/60 group-hover:bg-transparent transition-colors duration-300"></div>
+<div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+<button class="w-16 h-16 rounded-full bg-secondary text-background flex items-center justify-center hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-3xl">play_arrow</span>
+</button>
+</div>
+</div>
+<div class="mt-4 flex flex-col gap-1">
+<div class="flex gap-2">
+<span class="bg-tertiary text-background font-label-sm px-2 py-0.5 text-xs uppercase">Mejor Ficción</span>
+</div>
+<h3 class="font-label-sm text-primary uppercase text-xl mt-2">La Sombra del Eco</h3>
+<p class="font-body-md text-on-surface-variant text-sm">Dir: Mariana López</p>
+</div>
+</div>
+<!-- Ganador 2 -->
+<div class="group relative md:translate-y-8">
+<div class="aspect-video bg-surface-container border border-outline-variant overflow-hidden relative">
+<img class="w-full h-full object-cover filter grayscale group-hover:grayscale-0 transition-all duration-500" data-alt="A surreal, experimental film still showing fragmented mirror reflections of a face in a stark, dimly lit room. Intense purple lighting accents against dark shadows. Brutalist, raw visual style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDzqYQIlgrotBn7-7os9IFokp0-EfMcbwSgaIZpxP3A-7-IgrdaHi9TCFfs9_u1vc4OQVkidJyTgp0d_BcGvnv4SKpzlGXOBQ9qkrZniMWxosNOeI3TOHREPWJ-3gMh-wvUuhE5u1_sYZGDH4tsnBYaz0mAw8TKB_Jnou2sSV6hVYIcjS-Pib6QsOUXbQMoLnYl6vcfLXlnR5Q0l3oFrxG93kc9ZNoCG-Iow5xWsrHhsIGuTImzn1FX"/>
+<div class="absolute inset-0 bg-background/60 group-hover:bg-transparent transition-colors duration-300"></div>
+<div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+<button class="w-16 h-16 rounded-full bg-tertiary text-background flex items-center justify-center hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-3xl">play_arrow</span>
+</button>
+</div>
+</div>
+<div class="mt-4 flex flex-col gap-1">
+<div class="flex gap-2">
+<span class="bg-secondary text-background font-label-sm px-2 py-0.5 text-xs uppercase">Mejor Experimental</span>
+</div>
+<h3 class="font-label-sm text-primary uppercase text-xl mt-2">Fragmentos</h3>
+<p class="font-body-md text-on-surface-variant text-sm">Dir: Carlos Ruiz</p>
+</div>
+</div>
+<!-- Ganador 3 -->
+<div class="group relative lg:translate-y-16">
+<div class="aspect-video bg-surface-container border border-outline-variant overflow-hidden relative">
+<img class="w-full h-full object-cover filter grayscale group-hover:grayscale-0 transition-all duration-500" data-alt="A documentary-style film still of hands working vigorously on a large canvas covered in chaotic paint splatters. The lighting is harsh and industrial. Gritty texture, high contrast." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCi4opyrIrtEElR3padTSddD9cdgGJKc5TnUVFESrjDnGvp7Jtp_gstPU6imGrX0pQBQJlY7U5E0oScrDc3_gbxgSMP5poqC4EUbtQJYx0ZlGlaklWvRmPhbkC9QIiMZy2J8QAuUF-9F2h4nZHMfnCw3AxX4nR7Of4Zc13oPadGSWGRacOnhzvT1XOe4BMkcYiPP4ucGc03foJMpHWaL0TxHMrfXv2eKkXauaooIwkPozNsKz_VPgXB"/>
+<div class="absolute inset-0 bg-background/60 group-hover:bg-transparent transition-colors duration-300"></div>
+<div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+<button class="w-16 h-16 rounded-full bg-outline-variant text-primary flex items-center justify-center hover:scale-110 transition-transform hover:bg-primary hover:text-background">
+<span class="material-symbols-outlined text-3xl">play_arrow</span>
+</button>
+</div>
+</div>
+<div class="mt-4 flex flex-col gap-1">
+<div class="flex gap-2">
+<span class="bg-surface-variant text-primary font-label-sm px-2 py-0.5 text-xs uppercase border border-outline-variant">Mejor Documental</span>
+</div>
+<h3 class="font-label-sm text-primary uppercase text-xl mt-2">Trazo Fuerte</h3>
+<p class="font-body-md text-on-surface-variant text-sm">Dir: Elena Martínez</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Acerca de TVU Section -->
+<section class="py-24 px-margin-desktop relative" id="acerca-de">
+<div class="max-w-container-max mx-auto text-center flex flex-col items-center">
+<h2 class="text-headline-lg font-headline-lg text-secondary uppercase mb-4 glitch-text">Somos Producciones TVU</h2>
+<p class="text-on-surface-variant font-label-sm uppercase tracking-widest mb-2">Grupo estudiantil de la Universidad EAFIT</p>
+<p class="font-quote-accent text-quote-accent text-tertiary italic mb-12">¿hacemos videos?</p>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8 w-full">
+<div class="p-6 border border-outline-variant bg-surface-container-low film-frame">
+<span class="material-symbols-outlined text-4xl text-tertiary mb-4">movie</span>
+<h3 class="font-label-sm text-primary uppercase text-xl mb-2">Contamos Historias</h3>
+<p class="text-on-surface-variant font-body-md text-sm">A través del lente de los estudiantes.</p>
+</div>
+<div class="p-6 border border-outline-variant bg-surface-container-low film-frame translate-y-4 hard-shadow-primary">
+<span class="material-symbols-outlined text-4xl text-secondary mb-4">forum</span>
+<h3 class="font-label-sm text-primary uppercase text-xl mb-2">Compartimos Arte</h3>
+<p class="text-on-surface-variant font-body-md text-sm">Por medio de nuestro evento 35mm.</p>
+</div>
+<div class="p-6 border border-outline-variant bg-surface-container-low film-frame">
+<span class="material-symbols-outlined text-4xl text-tertiary mb-4">celebration</span>
+<h3 class="font-label-sm text-primary uppercase text-xl mb-2">Celebramos la Creatividad</h3>
+<p class="text-on-surface-variant font-body-md text-sm">En todas sus formas y formatos.</p>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer Component -->
+<footer class="flex flex-col md:flex-row justify-between items-center w-full px-margin-desktop py-gutter gap-6 bg-surface-container-lowest dark:bg-surface-container-lowest border-t-4 border-secondary-container">
+<div class="flex items-center gap-4">
+<span class="text-headline-lg font-headline-lg text-secondary tracking-tighter font-bold uppercase">35mm</span>
+</div>
+<p class="text-body-md font-body-md text-on-surface text-center md:text-left opacity-70">
+            © 2024 35mm Festival de Cortos - Organizado por TVU Universidad EAFIT
+        </p>
+<div class="flex gap-6 items-center">
+<a class="text-on-surface-variant font-label-sm hover:text-secondary underline decoration-2 hover:translate-y-[-2px] transition-transform uppercase tracking-widest" href="#">Instagram</a>
+<a class="text-on-surface-variant font-label-sm hover:text-secondary underline decoration-2 hover:translate-y-[-2px] transition-transform uppercase tracking-widest" href="#">YouTube</a>
+<a class="text-on-surface-variant font-label-sm hover:text-secondary underline decoration-2 hover:translate-y-[-2px] transition-transform uppercase tracking-widest" href="#">Contacto</a>
+<a class="text-on-surface-variant font-label-sm hover:text-secondary underline decoration-2 hover:translate-y-[-2px] transition-transform uppercase tracking-widest" href="#">Privacidad</a>
+</div>
+</footer>
+<script>
+        // Simple Intersection Observer for scroll animations
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.animationPlayState = 'running';
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.fade-in-up').forEach((el) => {
+            el.style.animationPlayState = 'paused';
+            observer.observe(el);
+        });
+    </script>
+</body></html>
