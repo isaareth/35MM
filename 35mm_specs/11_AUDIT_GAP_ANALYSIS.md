@@ -1,6 +1,22 @@
 # 35mm — Auditoría, Gap Analysis y Plan (Fase 1-3 SDD)
 
-Generado siguiendo `10_SDD_WORKFLOW.md`. No se ha modificado código de `LandingPage35mm`.
+Generado siguiendo `10_SDD_WORKFLOW.md`.
+
+## Addendum — decisiones resueltas (post-entrega)
+
+Tras presentar este análisis, el usuario confirmó lo siguiente:
+
+- **S.1 Next.js:** Aprobado migrar a Next.js si es necesario para escalabilidad, **con la condición estricta de que el diseño visual quede exactamente igual**. Cualquier cambio de framework debe verificarse componente por componente contra el baseline Vite antes de darse por bueno.
+- **S.2 Numeración de edición:** Confirmado — el evento del 14 de noviembre de 2026 es la **3ra edición** (no la 4ta). **Ya corregido** en `Hero.tsx`, `Timeline.tsx`, `Stats.tsx`, `Winners.tsx`, `Registration.tsx` y `Footer.tsx` — ver commit "Correct edition numbering...". Verificado en navegador (dev server, sin errores de consola) tras el cambio.
+- **S.5 `landing.html` huérfano:** Eliminado (commit "Remove orphan landing.html prototype").
+- **S.9–S.13 (decisiones menores):** el usuario autorizó usar mi recomendación en cada una. Quedan así, documentadas como decisión tomada (ajustable si el equipo de 35mm objeta):
+  - **Backend host:** Railway (S.10) — mejor developer experience para Django+Postgres en proyectos chicos-medianos; Render queda como alternativa si Railway no conviene por costo.
+  - **Estructura de repos:** monorepo `frontend/` + `backend/` (S.11) — más simple de versionar y desplegar para un equipo pequeño, con Vercel apuntando a `frontend/` y Railway/Render a `backend/`.
+  - **Panel admin:** Django Admin nativo como MVP inicial (S.9) — cubre login, listado y export en mucho menos tiempo que una UI custom; se reevalúa una UI en Next.js solo si el equipo de 35mm pide una experiencia de marca ahí también.
+  - **Proveedor de correo:** Resend (S.12) — API simple, buen soporte de dominios propios y de plantillas; se abstrae detrás de `core/email.py` para poder cambiarlo sin tocar lógica de negocio.
+  - **Git/GitHub (S.13):** repositorio git **ya inicializado** en `C:\Proyecticos\35mm` con un commit baseline previo a cualquier cambio, y un segundo commit por cada incremento aplicado desde entonces. Falta conectar un remoto en GitHub cuando el usuario lo indique (no se ha hecho — requiere URL/cuenta del usuario).
+
+Lo que sigue del documento es el análisis original tal como se presentó; las secciones D.32/S.1/S.2/S.5 mencionadas arriba ya no están abiertas, se dejan intactas abajo para trazabilidad histórica de por qué se llegó a cada decisión.
 
 ---
 
