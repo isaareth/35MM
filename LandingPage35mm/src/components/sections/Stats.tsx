@@ -9,7 +9,7 @@ interface Stat {
 }
 
 const stats: Stat[] = [
-  { value: 3, suffix: "", label: "Ediciones", sub: "de festival consolidado" },
+  { value: 2, suffix: "", label: "Ediciones", sub: "de festival consolidado" },
   { value: 500, suffix: "+", label: "Participantes", sub: "estudiantes universitarios" },
   { value: 50, suffix: "+", label: "Marcas aliadas", sub: "empresas patrocinadoras" },
   { value: 35, suffix: "", label: "Equipos", sub: "compiten por el premio" },

@@ -10,7 +10,7 @@ export default function Footer() {
           <div>
             <p className="font-display font-black text-7xl text-purple leading-none mb-2">35mm</p>
             <p className="font-body text-white/40 text-xs tracking-widest uppercase">Festival de Cortos</p>
-            <p className="font-body text-white/30 text-xs mt-4">4ta Edición · Noviembre 2026</p>
+            <p className="font-body text-white/30 text-xs mt-4">3ra Edición · Noviembre 2026</p>
           </div>
 
           {/* Links */}

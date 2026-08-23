@@ -45,7 +45,7 @@ export default function Hero({ onCursorChange }: Props) {
         <div className="ticker-track flex whitespace-nowrap py-3 border-b border-white/10 mt-20">
           {Array.from({ length: 8 }).map((_, i) => (
             <span key={i} className="font-body text-white/20 text-xs tracking-[0.4em] uppercase mr-16">
-              Festival de Cortos · Producciones TVU · Universidad EAFIT · 4ta Edición ·
+              Festival de Cortos · Producciones TVU · Universidad EAFIT · 3ra Edición ·
             </span>
           ))}
         </div>
@@ -62,7 +62,7 @@ export default function Hero({ onCursorChange }: Props) {
         {/* Edition tag */}
         <motion.div variants={item} className="flex items-center gap-3 mb-3">
           <span className="w-8 h-px bg-neon" />
-          <span className="font-body text-xs text-neon tracking-[0.35em] uppercase">4ta Edición</span>
+          <span className="font-body text-xs text-neon tracking-[0.35em] uppercase">3ra Edición</span>
         </motion.div>
 
         {/* Giant logo */}

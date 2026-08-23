@@ -52,26 +52,6 @@ const winners: Winner[] = [
       "Una fotografía que convirtió los espacios urbanos de Medellín en un personaje más, ganando el premio a la mejor imagen del festival.",
     img: "https://images.unsplash.com/photo-1470338229081-eb5980be28c9?w=600&h=400&fit=crop&auto=format",
   },
-  {
-    edition: "3ra",
-    film: "El objeto de la satisfacción",
-    category: "Mejor Cortometraje",
-    team: "Consumo Total",
-    year: "2024",
-    description:
-      "Una crítica visual al consumismo disfrazada de thriller doméstico. El jurado la eligió unánimemente como la mejor pieza de la tercera edición.",
-    img: "https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=600&h=400&fit=crop&auto=format",
-  },
-  {
-    edition: "3ra",
-    film: "Satisfacción garantizada",
-    category: "Mejor Guion",
-    team: "Script Break",
-    year: "2024",
-    description:
-      "Un guion que subvirtió las expectativas narrativas con giros inesperados y diálogos afilados, reconocido como el mejor texto de la edición.",
-    img: "https://images.unsplash.com/photo-1497008323932-4f726e0f13f5?w=600&h=400&fit=crop&auto=format",
-  },
 ];
 
 interface Props {
@@ -106,7 +86,7 @@ export default function Winners({ onCursorChange }: Props) {
 
         {/* Filter */}
         <div className="flex gap-4 mb-12 flex-wrap">
-          {["todos", "1ra", "2da", "3ra"].map((f) => (
+          {["todos", "1ra", "2da"].map((f) => (
             <button
               key={f}
               className={`font-body text-xs tracking-widest uppercase px-5 py-2.5 transition-all duration-200 border ${

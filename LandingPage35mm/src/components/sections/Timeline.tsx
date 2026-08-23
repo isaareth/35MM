@@ -35,17 +35,6 @@ const editions: Edition[] = [
     winners: ["Mejor cortometraje", "Mejor dirección", "Mejor fotografía", "Premio del público"],
     color: "#8D3EF6",
   },
-  {
-    number: "03",
-    ordinal: "3ra",
-    title: "El objeto de la satisfacción",
-    year: "2024",
-    theme: "Deseo, consumo y significado",
-    description:
-      "La edición más audaz hasta la fecha. Los objetos cotidianos se convirtieron en metáforas del deseo y el consumismo. Más de 35 equipos llevaron al límite los lenguajes cinematográficos.",
-    winners: ["Mejor cortometraje", "Mejor dirección", "Mejor sonido", "Mejor montaje"],
-    color: "#6EF9F4",
-  },
 ];
 
 interface Props {
@@ -200,7 +189,7 @@ export default function Timeline({ onCursorChange }: Props) {
               </div>
               <div className="text-center">
                 <p className="font-display font-bold text-white/30 text-sm">2026</p>
-                <p className="font-body text-white/20 text-xs mt-0.5 hidden md:block">4ta — Próxima</p>
+                <p className="font-body text-white/20 text-xs mt-0.5 hidden md:block">3ra — Próxima</p>
               </div>
             </div>
           </div>

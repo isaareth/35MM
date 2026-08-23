@@ -37,7 +37,7 @@ const faqs: FAQ[] = [
   },
   {
     q: "¿Cuándo se abren las inscripciones?",
-    a: "Las inscripciones para la 4ta edición abrirán el 1 de septiembre de 2026. Te recomendamos registrar tu equipo con anticipación. Cupos limitados.",
+    a: "Las inscripciones para la 3ra edición abrirán el 1 de septiembre de 2026. Te recomendamos registrar tu equipo con anticipación. Cupos limitados.",
   },
 ];
 
@@ -63,7 +63,7 @@ export default function Registration({ onCursorChange }: Props) {
             {/* Left: giant CTA */}
             <div className="bg-purple p-10 md:p-16 flex flex-col justify-between">
               <div>
-                <p className="font-body text-neon text-xs tracking-[0.4em] uppercase mb-4">4ta Edición · 2026</p>
+                <p className="font-body text-neon text-xs tracking-[0.4em] uppercase mb-4">3ra Edición · 2026</p>
                 <h2
                   className="font-display font-black text-white uppercase leading-none mb-6"
                   style={{ fontSize: "clamp(3.5rem, 10vw, 9rem)" }}
