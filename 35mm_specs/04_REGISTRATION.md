@@ -1,21 +1,32 @@
 # 35mm — Registration Specification
 
 ## Estado
-PENDIENTE DE LOS CAMPOS DEFINITIVOS DEL FORMULARIO.
+CAMPOS CONFIRMADOS (2026-08-23), a partir del formulario de Google Forms usado en ediciones anteriores (capturas de pantalla entregadas por el usuario). Implementado en `backend/registrations` y `frontend/src/app/inscripcion`.
 
-No inventar campos.
+## Campos del formulario
 
-El equipo de 35mm proporcionará posteriormente la lista exacta de información que debe recolectarse.
+Por equipo (`Registration`):
+- Aceptación de términos y condiciones (checkbox, obligatorio).
+- Confirmación de elegibilidad: todos los integrantes cursan un programa en una institución de educación superior del Valle de Aburrá (checkbox, obligatorio).
+
+Por integrante (`Participant`), entre 4 y 6 por equipo — el participante 1 es el representante del grupo:
+- Nombre completo
+- Documento de identidad
+- Institución de educación superior
+- Correo institucional
+- Celular
+
+No existe campo de "nombre de equipo" en el formulario real — el equipo se identifica únicamente por sus integrantes.
 
 ## Requisitos ya confirmados
 
-- El formulario será propio de la página.
-- El participante líder será quien envíe la inscripción.
-- La inscripción se almacenará en la base de datos.
-- El sistema debe registrar la información de todos los participantes solicitados.
-- El sistema debe identificar los datos del líder.
-- Al enviar correctamente el formulario se debe enviar una confirmación al correo del líder.
-- Después de la inscripción se debe proporcionar acceso al enlace de Google Forms para subir el cortometraje, si el flujo final del festival así lo define.
+- El formulario será propio de la página. Implementado en `/inscripcion`.
+- El participante líder (posición 1, "representante del grupo") será quien envíe la inscripción.
+- La inscripción se almacena en la base de datos (`Registration` + `Participant` 1:N).
+- El sistema registra la información de entre 4 y 6 participantes.
+- El sistema identifica al líder mediante `Participant.is_leader`.
+- Al enviar correctamente el formulario se envía una confirmación al correo institucional del líder.
+- El enlace de Google Forms para el cortometraje es configurable (`SHORTFILM_FORM_URL`); se muestra en el correo y puede mostrarse en la pantalla de éxito cuando esté definido.
 
 ## UX mínima
 

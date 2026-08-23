@@ -27,7 +27,33 @@ Se creó `frontend/` en la raíz del proyecto como el nuevo frontend de producci
 - `App.tsx` se convirtió en `frontend/src/app/page.tsx` (Client Component, mismo estado de Lenis/cursor); `index.css` se convirtió en `frontend/src/app/globals.css` sin cambios de tokens/fuentes/keyframes; `main.tsx` se reemplaza por el `layout.tsx` estándar de Next.js (solo metadata + shell HTML, sin lógica visual).
 - **Verificación realizada:** `pnpm build` sin errores; `pnpm dev` levantado y comparado contra el baseline Vite — mismo texto, misma estructura, cero errores de consola (en particular, sin errores de hidratación SSR/CSR, que es el riesgo típico de esta migración).
 - **Marcas aliadas (D.31/S.6):** ya resuelto — se reemplazó la lista ficticia de Figma Make por las marcas reales del portafolio (Nacional de Chocolates, TeleMedellín, Comfama, Cineprox, Monterojo Gourmet, Sushi Light, Clandestino, Hatsu, NODO EAFIT, Tecnológico de Artes Débora Arango, D Dermatológica, Arde la Selva, Solución Adhesiva), aplicado tanto en `frontend/` como en `LandingPage35mm/` para no dejarlas desincronizadas mientras ambas coexistan. Las categorías junto a cada marca (ej. "Aliado gastronómico") son una inferencia razonable a partir del rubro visible de cada marca, no un dato inventado sobre el festival.
-- **Pendiente de esta migración, no bloqueante:** `next/image` no se adoptó (se mantienen los `<img>` planos para no alterar comportamiento de carga/visual); no se tocó `prefers-reduced-motion` ni accesibilidad de foco (siguen como D.8/D.9, abiertos); `/inscripcion` como ruta dedicada aún no existe (D.11, depende de los campos del formulario).
+- **Pendiente de esta migración, no bloqueante:** `next/image` no se adoptó (se mantienen los `<img>` planos para no alterar comportamiento de carga/visual); no se tocó `prefers-reduced-motion` ni accesibilidad de foco (siguen como D.8/D.9, abiertos).
+
+## Addendum 3 — backend + formulario de inscripción real (campos confirmados)
+
+El usuario entregó capturas del Google Form usado en ediciones anteriores (9 secciones). Con eso se resolvieron D.10, D.11, D.12, D.13, D.14, D.15, D.24 y F/G del análisis original.
+
+**Campos reales del formulario** (ver `04_REGISTRATION.md`/`07_DATABASE_API.md`, ya actualizados): checkbox de términos y condiciones, checkbox de confirmación de elegibilidad, y entre 4 y 6 participantes con Nombre completo / Documento de identidad / Institución / Correo institucional / Celular cada uno. El participante 1 es el representante del grupo. **No existe campo de nombre de equipo.**
+
+**Correcciones de contenido derivadas del formulario real** (el FAQ de `Registration.tsx` tenía cifras inventadas por Figma Make):
+- "Tamaño del equipo": 3-8 → **4-6 integrantes** (confirmado por las secciones 3-8 del formulario real).
+- FAQ "¿Quiénes pueden participar?": se quitó la mención inventada de "al menos un director y un productor" (el formulario no tiene campo de rol).
+- Duración del corto (3-15 min), formatos de entrega (MP4/MOV 1080p) y fecha de apertura de inscripciones (1 sept 2026) **siguen sin verificar** — el formulario no cubre esos datos, así que se dejaron intactos hasta tener una fuente real.
+
+**Backend (`backend/`)**: Django 5.1 + DRF, modelo `Registration`/`Participant` (sin `Team` — colapsado en `Registration` porque el formulario real no tiene campos de equipo, ver `07_DATABASE_API.md`), validación de 4-6 participantes con exactamente un líder en la posición 1, throttling anti-abuso (5/hora/IP), login de admin por sesión, listado/conteo/export Excel protegidos, envío de correo abstraído (`console` en dev, `resend` en prod) que nunca revierte una inscripción guardada si falla (AC-013). Settings 100% por variables de entorno (un solo `settings.py`, sin split base/dev/prod — más simple para el tamaño real del proyecto).
+
+**Frontend**: nueva ruta `/inscripcion` con el formulario real (estados vacío/error/enviando/éxito, validación de email, participantes 5 y 6 opcionales vía botón "+ Agregar integrante"). Los CTA "Inscríbete" (Navbar, Hero, sección Registration) ahora enlazan a `/inscripcion`; el nav-link informativo "Inscripción" se dejó apuntando a la sección `#inscripcion` de la landing (FAQ + info), no al formulario, para no romper esa lectura. **Este cambio de rutas solo se aplicó en `frontend/`** — `LandingPage35mm/` (Vite) no tiene router, así que sus CTAs se dejaron con el anchor `#inscripcion` para no romperlos.
+
+**Verificado end-to-end** (backend levantado en `:8010`, frontend del usuario en `:3050`):
+- `POST /api/registrations/` con 4 integrantes → `201`, email de confirmación logueado.
+- Con 2 integrantes → `400` con mensaje de validación claro.
+- Login admin → `count` (`total_teams`/`total_participants`) → `export/` devuelve un `.xlsx` real y descargable.
+- Endpoints admin sin sesión → `403`.
+- `/inscripcion` renderiza los 4 fieldsets (22 inputs) sin errores de consola; envío vacío dispara 22 mensajes de error inline ("Requerido") sin llegar a golpear la red.
+
+**No verificado en navegador real** (limitación de la sesión, no del código): el envío exitoso end-to-end frontend→backend, porque `NEXT_PUBLIC_API_URL` se agregó a `frontend/.env.local` después de que el servidor de desarrollo del usuario ya estaba corriendo — Next.js solo lee `.env*` al iniciar. **Requiere que el usuario reinicie su `pnpm dev`** para que el formulario pueda hablar con el backend.
+
+**Pendiente, no bloqueante:** correo real vía Resend (falta `EMAIL_API_KEY`, dev usa `console`); Supabase aún no provisionado (dev usa SQLite local); deploy de `backend/` a Railway/Render; `/api/public/event|dates|rules` deferred (ver `07_DATABASE_API.md`).
 
 ---
 

@@ -9,7 +9,7 @@ interface FAQ {
 const faqs: FAQ[] = [
   {
     q: "¿Quiénes pueden participar?",
-    a: "Estudiantes activos de instituciones de educación superior del Área Metropolitana del Valle de Aburrá. Cada equipo debe tener entre 3 y 8 integrantes, con al menos un director y un productor.",
+    a: "Estudiantes activos de instituciones de educación superior del Área Metropolitana del Valle de Aburrá. Cada equipo debe tener entre 4 y 6 integrantes, y uno de ellos es el representante del grupo.",
   },
   {
     q: "¿Cuánto tiempo tengo para producir el cortometraje?",
@@ -75,15 +75,16 @@ export default function Registration({ onCursorChange }: Props) {
                 </p>
               </div>
               <div className="mt-10">
-                <motion.button
-                  className="w-full md:w-auto font-body font-semibold text-sm tracking-widest uppercase px-10 py-5 bg-neon text-ink hover:bg-white transition-all duration-300"
+                <motion.a
+                  href="/inscripcion"
+                  className="inline-block w-full md:w-auto text-center font-body font-semibold text-sm tracking-widest uppercase px-10 py-5 bg-neon text-ink hover:bg-white transition-all duration-300"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onMouseEnter={() => onCursorChange("cta")}
                   onMouseLeave={() => onCursorChange("default")}
                 >
                   Inscríbete ahora →
-                </motion.button>
+                </motion.a>
                 <p className="font-body text-white/40 text-xs mt-4 tracking-wider">
                   * Inscripciones abren el 1 de septiembre de 2026
                 </p>
@@ -95,7 +96,7 @@ export default function Registration({ onCursorChange }: Props) {
               {[
                 { icon: "📅", label: "Fecha del evento", value: "14 de noviembre de 2026" },
                 { icon: "📍", label: "Lugar", value: "Auditorio Fundadores · Universidad EAFIT" },
-                { icon: "👥", label: "Tamaño del equipo", value: "3 a 8 integrantes" },
+                { icon: "👥", label: "Tamaño del equipo", value: "4 a 6 integrantes" },
                 { icon: "🎬", label: "Duración del corto", value: "3 – 15 minutos" },
                 { icon: "💰", label: "Costo de inscripción", value: "Completamente gratuito" },
                 { icon: "🏆", label: "Premio principal", value: "Reconocimiento + premio en especie" },

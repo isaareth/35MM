@@ -99,7 +99,7 @@ export default function Hero({ onCursorChange }: Props) {
         {/* CTA */}
         <motion.div variants={item} className="mt-10 flex items-center gap-6">
           <a
-            href="#inscripcion"
+            href="/inscripcion"
             className="group inline-flex items-center gap-3 font-body font-semibold text-sm tracking-widest uppercase px-8 py-4 bg-purple text-white hover:bg-neon hover:text-ink transition-all duration-300"
             onMouseEnter={() => onCursorChange("cta")}
             onMouseLeave={() => onCursorChange("default")}

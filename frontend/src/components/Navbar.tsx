@@ -57,7 +57,7 @@ export default function Navbar({ onCursorChange }: Props) {
             </a>
           ))}
           <a
-            href="#inscripcion"
+            href="/inscripcion"
             className="font-body text-sm font-semibold tracking-widest uppercase px-5 py-2.5 bg-purple text-white hover:bg-neon hover:text-ink transition-all duration-300"
             onMouseEnter={() => onCursorChange("cta")}
             onMouseLeave={() => onCursorChange("default")}
@@ -108,7 +108,7 @@ export default function Navbar({ onCursorChange }: Props) {
               </motion.a>
             ))}
             <motion.a
-              href="#inscripcion"
+              href="/inscripcion"
               className="mt-8 font-body text-sm font-semibold tracking-widest uppercase px-8 py-4 bg-purple text-white"
               initial={{ x: 60, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
