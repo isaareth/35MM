@@ -21,6 +21,13 @@ SECRET_KEY = env("DJANGO_SECRET_KEY", default="django-insecure-dev-only-change-m
 DEBUG = env("DJANGO_DEBUG")
 ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=["localhost", "127.0.0.1"])
 
+# Railway (and most PaaS) terminate TLS at a proxy and forward plain HTTP to
+# the app, so Django needs to trust the proxy's header to know a request was
+# actually HTTPS — otherwise SECURE_SSL_REDIRECT and CSRF's origin check both
+# misbehave behind the proxy.
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+CSRF_TRUSTED_ORIGINS = [f"https://{host}" for host in ALLOWED_HOSTS if host not in ("localhost", "127.0.0.1")]
+
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
