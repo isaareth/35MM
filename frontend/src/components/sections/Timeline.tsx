@@ -9,6 +9,7 @@ interface Edition {
   theme: string;
   description: string;
   winners: string[];
+  categoriesLabel: string;
   color: string;
 }
 
@@ -22,6 +23,7 @@ const editions: Edition[] = [
     description:
       "La primera edición que abrió el telón para el festival. Los equipos exploraron la noción del tiempo, las despedidas y los finales inevitables. Una apuesta valiente por un cine íntimo y emotivo.",
     winners: ["Mejor cortometraje", "Mejor dirección", "Mejor guion", "Mejor actuación"],
+    categoriesLabel: "Categorías premiadas",
     color: "#6023CD",
   },
   {
@@ -33,7 +35,29 @@ const editions: Edition[] = [
     description:
       "El silencio como protagonista. Los equipos encontraron en lo no dicho un territorio fértil para historias de amor, pérdida y conexión humana. El festival comenzó a consolidarse en la escena universitaria.",
     winners: ["Mejor cortometraje", "Mejor dirección", "Mejor fotografía", "Premio del público"],
+    categoriesLabel: "Categorías premiadas",
     color: "#8D3EF6",
+  },
+  {
+    number: "03",
+    ordinal: "3ra",
+    title: "El objeto de la satisfacción",
+    year: "2026",
+    theme: "Aquello que nos mueve sin que sepamos del todo por qué",
+    description:
+      "No siempre sabemos qué nos mueve. Solo sentimos el impulso de volver ahí. 35mm invita a los equipos a filmar ese impulso: la costumbre que no se explica, el objeto que se vuelve ritual, la satisfacción que se persigue sin mapa.",
+    winners: [
+      "Mejor corto",
+      "Mejor dirección",
+      "Mejor guion",
+      "Mejor sonido",
+      "Mejor imagen",
+      "Mejor montaje",
+      "Mejor dirección de arte",
+      "Mejor actuación",
+    ],
+    categoriesLabel: "Categorías a premiar",
+    color: "#6EF9F4",
   },
 ];
 
@@ -60,8 +84,8 @@ export default function Timeline({ onCursorChange }: Props) {
             className="font-display font-black text-white uppercase leading-none"
             style={{ fontSize: "clamp(3rem, 9vw, 9rem)" }}
           >
-            Ediciones<br />
-            <span className="text-purple">anteriores</span>
+            Nuestras<br />
+            <span className="text-purple">ediciones</span>
           </h2>
         </motion.div>
 
@@ -130,7 +154,7 @@ export default function Timeline({ onCursorChange }: Props) {
             {/* Right: categories */}
             <div className="md:col-span-4">
               <p className="font-body text-xs tracking-[0.3em] uppercase text-white/30 mb-5">
-                Categorías premiadas
+                {editions[active].categoriesLabel}
               </p>
               <ul className="flex flex-col gap-3">
                 {editions[active].winners.map((w, j) => (
@@ -183,15 +207,6 @@ export default function Timeline({ onCursorChange }: Props) {
                 </div>
               </button>
             ))}
-            <div className="flex flex-col items-center gap-3 opacity-40">
-              <div className="w-6 h-6 rounded-full border-2 border-dashed border-white/30 relative z-10 flex items-center justify-center">
-                <div className="w-1.5 h-1.5 rounded-full bg-white/30" />
-              </div>
-              <div className="text-center">
-                <p className="font-display font-bold text-white/30 text-sm">2026</p>
-                <p className="font-body text-white/20 text-xs mt-0.5 hidden md:block">3ra — Próxima</p>
-              </div>
-            </div>
           </div>
         </div>
       </div>

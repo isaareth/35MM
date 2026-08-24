@@ -90,8 +90,8 @@ export default function NumberSection() {
           viewport={{ once: true }}
           transition={{ delay: 0.6, duration: 0.9 }}
         >
-          "El ancho del film que inmortalizó la historia del cine. <br />
-          Ahora, el nombre que dará vida a la tuya."
+          "35mm: la medida exacta en la que, durante más de un siglo, <br />
+          el cine ha guardado lo que las palabras no alcanzan a decir."
         </motion.blockquote>
 
         {/* Facts row */}

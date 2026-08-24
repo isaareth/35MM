@@ -37,18 +37,17 @@ export default function Footer() {
           {/* Contact */}
           <div>
             <p className="font-body text-white/20 text-xs tracking-widest uppercase mb-4">Contacto</p>
-            <p className="font-body text-white/50 text-sm mb-2">35mm@eafit.edu.co</p>
-            <p className="font-body text-white/30 text-xs mb-6">Auditorio Fundadores, Universidad EAFIT<br />Medellín, Colombia</p>
+            <p className="font-body text-white/50 text-sm mb-2">tvu@eafit.edu.co</p>
+            <p className="font-body text-white/30 text-xs mb-6">Carrera 49 #7 Sur 50 — Universidad EAFIT<br />Medellín, Colombia</p>
             <div className="flex gap-4">
-              {["Instagram", "LinkedIn", "TikTok"].map((s) => (
-                <a
-                  key={s}
-                  href="#"
-                  className="font-body text-xs text-white/30 hover:text-neon tracking-wider transition-colors uppercase"
-                >
-                  {s}
-                </a>
-              ))}
+              <a
+                href="https://instagram.com/35mm_tvu"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-body text-xs text-white/30 hover:text-neon tracking-wider transition-colors uppercase"
+              >
+                Instagram
+              </a>
             </div>
           </div>
         </div>

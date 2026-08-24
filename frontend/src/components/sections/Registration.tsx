@@ -12,32 +12,24 @@ const faqs: FAQ[] = [
     a: "Estudiantes activos de instituciones de educación superior del Área Metropolitana del Valle de Aburrá. Cada equipo debe tener entre 4 y 6 integrantes, y uno de ellos es el representante del grupo.",
   },
   {
-    q: "¿Cuánto tiempo tengo para producir el cortometraje?",
-    a: "Desde la entrega del tema oficial hasta la fecha límite de entrega del cortometraje tendrás aproximadamente 30 días. El tema se revela en el evento de apertura del festival.",
-  },
-  {
-    q: "¿Cuál es la duración máxima del cortometraje?",
-    a: "Los cortometrajes deben tener una duración mínima de 3 minutos y máxima de 15 minutos, incluyendo créditos. El incumplimiento de este requisito descalifica automáticamente la pieza.",
-  },
-  {
-    q: "¿Qué formatos de entrega se aceptan?",
-    a: "Se acepta archivo de video en formato .MP4 o .MOV con resolución mínima de 1080p (Full HD). La entrega se realiza a través de la plataforma oficial del festival.",
+    q: "¿Cuál es la duración del cortometraje y del tráiler?",
+    a: "El cortometraje debe durar entre 3 y 5 minutos, y el tráiler entre 30 y 40 segundos. Ambos se entregan en formato técnico 1920 x 1080 px.",
   },
   {
     q: "¿Hay algún costo de inscripción?",
-    a: "No. La participación en el 35mm Festival de Cortos es completamente gratuita para todos los equipos participantes. Producciones TVU y Universidad EAFIT asumen todos los costos del evento.",
+    a: "No. La participación en el 35mm Festival de Cortos es completamente gratuita para todos los equipos participantes.",
   },
   {
     q: "¿Cómo se seleccionan los ganadores?",
-    a: "Un jurado compuesto por profesionales de la industria audiovisual, académicos y representantes de marcas aliadas evalúa los cortometrajes según criterios de narrativa, dirección, fotografía, sonido y originalidad.",
+    a: "Un jurado seleccionado por Producciones TVU evalúa cada corto según guion y narrativa, cinematografía, actuación, montaje y ritmo, diseño de sonido, dirección de arte y dirección.",
   },
   {
-    q: "¿El material debe ser inédito?",
-    a: "Sí. Todos los cortometrajes presentados deben ser producciones originales e inéditas, creadas específicamente para esta edición del festival. No se aceptan piezas previamente publicadas o presentadas en otros festivales.",
+    q: "¿Qué categorías se premian?",
+    a: "Mejor corto, mejor dirección, mejor guion, mejor sonido, mejor imagen, mejor montaje, mejor dirección de arte y mejor actuación.",
   },
   {
-    q: "¿Cuándo se abren las inscripciones?",
-    a: "Las inscripciones para la 3ra edición abrirán el 1 de septiembre de 2026. Te recomendamos registrar tu equipo con anticipación. Cupos limitados.",
+    q: "¿Qué pasa con los derechos del cortometraje?",
+    a: "Los derechos morales siguen siempre en manos de los autores. Al participar, el equipo autoriza a Producciones TVU a reproducir y distribuir el corto únicamente con fines de visibilización del evento (muestras, redes, plataformas digitales, actividades promocionales), sin compensación económica y sin modificar la obra sin autorización previa.",
   },
 ];
 
@@ -71,7 +63,7 @@ export default function Registration({ onCursorChange }: Props) {
                   Inscribe<br />tu equipo
                 </h2>
                 <p className="font-editorial italic text-white/70 text-xl md:text-2xl leading-snug">
-                  "El cine no espera a los indecisos."
+                  "No siempre sabemos qué nos mueve. Solo sentimos el impulso de volver ahí."
                 </p>
               </div>
               <div className="mt-10">
@@ -97,9 +89,9 @@ export default function Registration({ onCursorChange }: Props) {
                 { icon: "📅", label: "Fecha del evento", value: "14 de noviembre de 2026" },
                 { icon: "📍", label: "Lugar", value: "Auditorio Fundadores · Universidad EAFIT" },
                 { icon: "👥", label: "Tamaño del equipo", value: "4 a 6 integrantes" },
-                { icon: "🎬", label: "Duración del corto", value: "3 – 15 minutos" },
+                { icon: "🎬", label: "Duración del corto", value: "3 a 5 minutos" },
+                { icon: "🎞️", label: "Duración del tráiler", value: "30 a 40 segundos" },
                 { icon: "💰", label: "Costo de inscripción", value: "Completamente gratuito" },
-                { icon: "🏆", label: "Premio principal", value: "Reconocimiento + premio en especie" },
               ].map((item) => (
                 <div key={item.label} className="flex gap-4 items-start group">
                   <span className="text-xl mt-0.5">{item.icon}</span>

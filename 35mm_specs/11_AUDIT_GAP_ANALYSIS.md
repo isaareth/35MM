@@ -487,3 +487,20 @@ Para poder avanzar a la Fase 2 (scaffolding real, sin código descartable), nece
 3. **Los campos definitivos del formulario de inscripción**, cuando estén listos — con ellos diseño el modelo de datos final (F), el formulario real (H) y el endpoint (G) sin inventar nada.
 
 Mientras tanto, si quieres, puedo dejar listas (sin tocar código) las decisiones menores (S.5–S.13: repo git, marcas reales, fotografía, admin nativo vs. custom, proveedor de correo, Railway vs. Render) con una recomendación puntual por cada una, para que solo tengas que aprobar o corregir.
+
+## Addendum 4 — contenido real desde el brief institucional (2026-08-24)
+
+El usuario entregó `Brief_35MM_Producciones_TVU.pdf` (ahora en `35mm_specs/`), el documento oficial con voz/tono de los directivos. Se actualizó `frontend/` (no `LandingPage35mm/`, ya retirada de producción) con:
+
+- **About.tsx**: copy real de "Sobre 35MM" y la temática "El objeto de la satisfacción".
+- **NumberSection.tsx**: cita editorial real ("35mm: la medida exacta...").
+- **Timeline.tsx**: se agregó la 3ra edición (2026, "El objeto de la satisfacción") como tab real, con las categorías oficiales que se premiarán — sin inventar ganadores, ya que aún no ha ocurrido. Se quitó el marcador punteado "Próxima" (redundante ahora que existe el tab real) y se ajustó el título de la sección ("Nuestras ediciones" en vez de "Ediciones anteriores", ya que ahora incluye la vigente).
+- **Registration.tsx**: FAQ y datos corregidos con las cifras reales del brief — duración del corto **3 a 5 minutos** (no 3-15), formato técnico **1920 x 1080 px** (se quitó la mención no confirmada de MP4/MOV), duración del tráiler **30-40 segundos** (dato nuevo), criterios de evaluación y categorías de premiación reales, derechos sobre el material. Se quitó "premio en especie" (nunca confirmado). Cita editorial real del brief en el CTA.
+- **TVU.tsx**: copy real de "Quiénes somos", misión real, Instagram real (@35mm_tvu).
+- **Footer.tsx**: correo corregido a `tvu@eafit.edu.co` (antes decía `35mm@eafit.edu.co`, incorrecto), ubicación real (Carrera 49 #7 Sur 50), Instagram real. Se quitaron LinkedIn/TikTok (sin dato real).
+- **Backend**: `FESTIVAL_CONTACT_EMAIL` corregido a `tvu@eafit.edu.co` en `.env` y `.env.example` (falta replicar en Railway).
+
+**Dos hallazgos quedaron pendientes de confirmación explícita, no se tocaron:**
+
+1. **Conflicto de fechas (no resuelto)**: el brief dice que las inscripciones son "del 23 al 29 de septiembre de **2025**" y la entrega del corto "antes del 30 de octubre de **2025**"; la premiación tiene un año imposible ("20 de noviembre de **207890**"). El documento marca esa sección como "POR REVISAR". Como esto contradice directamente el 14 de noviembre de **2026** ya confirmado como fecha del evento (S.2), **no se tocó ninguna fecha de inscripción/entrega** — el sitio sigue mostrando el placeholder "Inscripciones abren el 1 de septiembre de 2026" hasta recibir las fechas reales de 2026.
+2. **Marcas y Ganadores (pendiente de decisión del usuario)**: el brief marca "Marcas y aliados", "Ediciones anteriores" (detalle), "Galería de momentos" y "Ganadores de ediciones anteriores" explícitamente como **"FALTA"** de su lado. Esto confirma que los nombres de ganadores que hoy aparecen en `Winners.tsx` (Equipo Cronos, Frame by Frame, Silencio Colectivo, Lente Abierto, con descripciones) **nunca fueron datos reales** — eran contenido inventado por Figma Make que no se detectó como tal en la auditoría original, porque en ese momento no había una fuente oficial con la que contrastarlo. Se le preguntó al usuario si prefiere dejarlo así (contenido "de ejemplo") o convertirlo a un estado honesto tipo "Ganadores — próximamente"; respuesta pendiente.

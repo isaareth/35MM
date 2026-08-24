@@ -64,18 +64,24 @@ export default function About({ onCursorChange }: Props) {
               </h3>
             </motion.div>
 
+            <motion.div variants={fadeUp} className="mb-2">
+              <p className="font-editorial italic text-neon text-lg">"El objeto de la satisfacción"</p>
+            </motion.div>
+
             <motion.div variants={fadeUp} className="border-l-2 border-purple pl-6 mb-8">
               <p className="font-body text-white/70 text-base md:text-lg leading-relaxed">
-                Es un festival <em className="font-editorial italic text-neon not-italic">por estudiantes, para estudiantes</em> que celebra
-                y explora la creatividad y la imaginación a través de cortometrajes.
+                El festival de cortometrajes hecho <em className="font-editorial italic text-neon not-italic">por estudiantes, para estudiantes</em> del
+                área metropolitana. Un espacio construido para que quienes crean y quienes aman mirar se encuentren
+                en el mismo lugar: en las salas, en los conversatorios, en las conversaciones que empiezan cuando
+                las luces se encienden de nuevo.
               </p>
             </motion.div>
 
             <motion.div variants={fadeUp}>
               <p className="font-body text-white/50 text-sm leading-loose">
-                Busca ser un espacio de aprendizaje y conexión entre la industria y los estudiantes,
-                ofreciendo talleres, conferencias y capacitaciones que impulsan el talento creativo
-                del Valle de Aburrá.
+                A través de muestras, conversatorios, actividades de formación y proyecciones abiertas al
+                público, 35mm defiende que una historia bien contada, aunque dure apenas unos minutos,
+                puede quedarse mucho más tiempo del que dura en pantalla.
               </p>
             </motion.div>
 

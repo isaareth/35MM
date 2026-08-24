@@ -57,16 +57,12 @@ export default function TVU() {
 
             <div className="flex gap-4 mt-4">
               <a
-                href="#"
+                href="https://instagram.com/35mm_tvu"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="font-body text-xs text-white/30 hover:text-neon tracking-widest uppercase transition-colors"
               >
-                Instagram ↗
-              </a>
-              <a
-                href="#"
-                className="font-body text-xs text-white/30 hover:text-neon tracking-widest uppercase transition-colors"
-              >
-                LinkedIn ↗
+                @35mm_tvu ↗
               </a>
             </div>
           </motion.div>
@@ -90,13 +86,13 @@ export default function TVU() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="border-l-2 border-purple pl-6">
                 <p className="font-body text-white/70 text-base leading-relaxed mb-4">
-                  <strong className="text-white font-medium">Producciones TVU</strong> es el semillero
-                  audiovisual de la Universidad EAFIT. Somos un equipo de estudiantes apasionados
-                  por la producción, el cine y la comunicación.
+                  <strong className="text-white font-medium">Producciones TVU</strong> reúne a un grupo
+                  de estudiantes que decidieron que la producción audiovisual, el entretenimiento y la
+                  comunicación no eran solo materias de clase, sino un lugar donde quedarse a explorar.
                 </p>
                 <p className="font-body text-white/50 text-sm leading-relaxed">
-                  Desde talleres de producción hasta eventos de alto impacto, TVU es el espacio
-                  donde el talento universitario se encuentra con la industria.
+                  No organizamos eventos para llenar un calendario. Los construimos porque creemos en
+                  abrir espacios donde la creatividad no tiene techo.
                 </p>
               </div>
 
@@ -104,8 +100,8 @@ export default function TVU() {
                 <div>
                   <p className="font-body text-neon text-xs tracking-widest uppercase mb-2">Misión</p>
                   <p className="font-editorial italic text-white/60 text-lg leading-snug">
-                    Crear espacios de expresión audiovisual universitaria que conecten el mundo académico
-                    con la industria creativa.
+                    Conectar a la comunidad estudiantil con la industria audiovisual real, no como una
+                    simulación, sino como una primera experiencia genuina.
                   </p>
                 </div>
                 <div>
