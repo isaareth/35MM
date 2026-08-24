@@ -26,7 +26,17 @@ ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=["localhost", "127.0.0.
 # actually HTTPS — otherwise SECURE_SSL_REDIRECT and CSRF's origin check both
 # misbehave behind the proxy.
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-CSRF_TRUSTED_ORIGINS = [f"https://{host}" for host in ALLOWED_HOSTS if host not in ("localhost", "127.0.0.1")]
+
+# Explicit env var rather than deriving from ALLOWED_HOSTS, so a formatting
+# slip in one (extra space, missing host) can't silently break the other.
+# Always includes every ALLOWED_HOSTS entry as a fallback so the admin login
+# keeps working even if CSRF_TRUSTED_ORIGINS itself is never set.
+CSRF_TRUSTED_ORIGINS = list(
+    dict.fromkeys(
+        env.list("CSRF_TRUSTED_ORIGINS", default=[])
+        + [f"https://{host.strip()}" for host in ALLOWED_HOSTS if host.strip() not in ("localhost", "127.0.0.1", "")]
+    )
+)
 
 INSTALLED_APPS = [
     "django.contrib.admin",
