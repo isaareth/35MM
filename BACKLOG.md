@@ -40,7 +40,6 @@ Estado detallado y justificación de cada decisión en [`35mm_specs/11_AUDIT_GAP
 
 ## Mejoras futuras (no bloqueantes)
 
-- [ ] Panel de administrador con la identidad visual de 35mm en Next.js, en vez del Django Admin genérico (hoy es funcionalmente completo, solo visualmente genérico).
 - [ ] Endpoints `/api/public/event|dates|rules` si el equipo de 35mm quiere editar esos textos sin hacer deploy (hoy son estáticos en el frontend, ver `07_DATABASE_API.md`).
 - [ ] Decidir el destino final de `LandingPage35mm/` (sandbox de Figma Make) — conservarla indefinidamente, archivarla, o retirarla ahora que `frontend/` ya está en producción.
 
@@ -57,3 +56,4 @@ Estado detallado y justificación de cada decisión en [`35mm_specs/11_AUDIT_GAP
 - [x] Repositorio Git conectado a GitHub (`https://github.com/isaareth/35MM`).
 - [x] Frontend desplegado en Vercel, backend en Railway, base de datos en Supabase.
 - [x] Contenido real del brief institucional aplicado (Sobre 35MM, temática, formato técnico, criterios de evaluación, contacto).
+- [x] Panel de administrador propio en `/admin` (Next.js, identidad de 35mm): login por token, dashboard con totales y últimas inscripciones, listado buscable, descarga de Excel.

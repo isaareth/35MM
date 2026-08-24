@@ -6,7 +6,7 @@ from rest_framework.views import APIView
 
 from .email import send_registration_confirmation
 from .excel import build_registrations_workbook, registrations_filename
-from .models import Registration
+from .models import Participant, Registration
 from .serializers import RegistrationCreateSerializer, RegistrationReadSerializer
 
 
@@ -39,14 +39,20 @@ class AdminRegistrationListView(APIView):
         return Response(RegistrationReadSerializer(registrations, many=True).data)
 
 
-class AdminRegistrationCountView(APIView):
+class AdminDashboardView(APIView):
+    """GET /api/admin/dashboard/ — totals + last 5 registrations, per 06_ADMIN.md."""
+
     permission_classes = [IsAdminUser]
 
     def get(self, request):
-        registrations = Registration.objects.all()
-        total_teams = registrations.count()
-        total_participants = sum(r.participants.count() for r in registrations)
-        return Response({"total_teams": total_teams, "total_participants": total_participants})
+        recent = Registration.objects.order_by("-created_at").prefetch_related("participants")[:5]
+        return Response(
+            {
+                "total_teams": Registration.objects.count(),
+                "total_participants": Participant.objects.count(),
+                "recent_registrations": RegistrationReadSerializer(recent, many=True).data,
+            }
+        )
 
 
 class AdminRegistrationExportView(APIView):
