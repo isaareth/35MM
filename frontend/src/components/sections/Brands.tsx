@@ -114,7 +114,8 @@ export default function Brands({ onCursorChange }: Props) {
               Conecta con el talento creativo universitario y posiciona tu marca ante más de 500 jóvenes creativos.
             </p>
           </div>
-          <motion.button
+          <motion.a
+            href="/aliados"
             className="flex-shrink-0 font-body font-semibold text-sm tracking-widest uppercase px-8 py-4 border border-neon text-neon hover:bg-neon hover:text-ink transition-all duration-300"
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
@@ -122,7 +123,7 @@ export default function Brands({ onCursorChange }: Props) {
             onMouseLeave={() => onCursorChange("default")}
           >
             Conviértete en aliado →
-          </motion.button>
+          </motion.a>
         </motion.div>
       </div>
     </section>
