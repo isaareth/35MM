@@ -18,8 +18,7 @@ export default function Footer() {
             <p className="font-body text-white/20 text-xs tracking-widest uppercase mb-2">Navegación</p>
             {[
               ["¿Qué es 35mm?", "#que-es"],
-              ["Ediciones anteriores", "#timeline"],
-              ["Ganadores", "#ganadores"],
+              ["Nuestras ediciones", "#timeline"],
               ["Inscripción", "#inscripcion"],
               ["Marcas & aliados", "#marcas"],
               ["Producciones TVU", "#tvu"],

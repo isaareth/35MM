@@ -10,7 +10,6 @@ import About from "@/components/sections/About";
 import NumberSection from "@/components/sections/NumberSection";
 import Timeline from "@/components/sections/Timeline";
 import Stats from "@/components/sections/Stats";
-import Winners from "@/components/sections/Winners";
 import Registration from "@/components/sections/Registration";
 import Brands from "@/components/sections/Brands";
 import TVU from "@/components/sections/TVU";
@@ -57,7 +56,6 @@ export default function Home() {
         <NumberSection />
         <Timeline onCursorChange={setCursor} />
         <Stats />
-        <Winners onCursorChange={setCursor} />
         <Registration onCursorChange={setCursor} />
         <Brands onCursorChange={setCursor} />
         <TVU />
