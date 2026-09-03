@@ -51,8 +51,8 @@ export default function TerminosPage() {
               dimensiones establecidas por Producciones TVU, 1920 x 1080.
             </P>
             <P>
-              3.2. La temática de esta tercera edición será <em className="font-editorial not-italic text-neon">&ldquo;El objeto de la satisfacción&rdquo;</em> y
-              los participantes deben ceñirse a dicha categoría sin excepción.
+              3.2. La temática de esta tercera edición se anunciará antes de la apertura de
+              inscripciones y los participantes deberán ceñirse a dicha categoría sin excepción.
             </P>
             <P>3.3. Los cortos deberán ser originales y producidos específicamente para el festival.</P>
             <p className="font-body text-white/40 text-sm italic">

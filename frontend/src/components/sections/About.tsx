@@ -65,7 +65,7 @@ export default function About({ onCursorChange }: Props) {
             </motion.div>
 
             <motion.div variants={fadeUp} className="mb-2">
-              <p className="font-editorial italic text-neon text-lg">"El objeto de la satisfacción"</p>
+              <p className="font-editorial italic text-neon text-lg">"La temática de esta edición se revela pronto"</p>
             </motion.div>
 
             <motion.div variants={fadeUp} className="border-l-2 border-purple pl-6 mb-8">
