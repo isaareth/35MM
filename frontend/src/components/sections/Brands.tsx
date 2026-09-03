@@ -8,21 +8,21 @@ interface Brand {
 }
 
 const brands: Brand[] = [
-  { name: "Universidad EAFIT", category: "Institución organizadora", color: "#6023CD", size: "lg" },
-  { name: "Producciones TVU", category: "Producción ejecutiva", color: "#8D3EF6", size: "lg" },
-  { name: "Nacional de Chocolates", category: "Patrocinador", color: "#6EF9F4", size: "md" },
-  { name: "TeleMedellín", category: "Aliado de medios", color: "#6023CD", size: "md" },
-  { name: "Comfama", category: "Aliado institucional", color: "#8D3EF6", size: "md" },
-  { name: "Cineprox", category: "Aliado cinematográfico", color: "#6EF9F4", size: "md" },
-  { name: "Monterojo Gourmet", category: "Aliado gastronómico", color: "#6023CD", size: "sm" },
-  { name: "Sushi Light", category: "Aliado gastronómico", color: "#8D3EF6", size: "sm" },
-  { name: "Clandestino Restaurante", category: "Aliado gastronómico", color: "#6EF9F4", size: "sm" },
-  { name: "Hatsu", category: "Aliado gastronómico", color: "#6023CD", size: "sm" },
-  { name: "NODO EAFIT", category: "Aliado institucional", color: "#8D3EF6", size: "sm" },
-  { name: "Tecnológico de Artes Débora Arango", category: "Aliado académico", color: "#6EF9F4", size: "sm" },
-  { name: "D Dermatológica", category: "Patrocinador", color: "#6023CD", size: "sm" },
-  { name: "Arde la Selva", category: "Aliado", color: "#8D3EF6", size: "sm" },
-  { name: "Solución Adhesiva", category: "Aliado creativo", color: "#6EF9F4", size: "sm" },
+  { name: "Universidad EAFIT", category: "Institución organizadora", color: "#4820B7", size: "lg" },
+  { name: "Producciones TVU", category: "Producción ejecutiva", color: "#8446F3", size: "lg" },
+  { name: "Nacional de Chocolates", category: "Patrocinador", color: "#39E4FF", size: "md" },
+  { name: "TeleMedellín", category: "Aliado de medios", color: "#4820B7", size: "md" },
+  { name: "Comfama", category: "Aliado institucional", color: "#8446F3", size: "md" },
+  { name: "Cineprox", category: "Aliado cinematográfico", color: "#39E4FF", size: "md" },
+  { name: "Monterojo Gourmet", category: "Aliado gastronómico", color: "#4820B7", size: "sm" },
+  { name: "Sushi Light", category: "Aliado gastronómico", color: "#8446F3", size: "sm" },
+  { name: "Clandestino Restaurante", category: "Aliado gastronómico", color: "#39E4FF", size: "sm" },
+  { name: "Hatsu", category: "Aliado gastronómico", color: "#4820B7", size: "sm" },
+  { name: "NODO EAFIT", category: "Aliado institucional", color: "#8446F3", size: "sm" },
+  { name: "Tecnológico de Artes Débora Arango", category: "Aliado académico", color: "#39E4FF", size: "sm" },
+  { name: "D Dermatológica", category: "Patrocinador", color: "#4820B7", size: "sm" },
+  { name: "Arde la Selva", category: "Aliado", color: "#8446F3", size: "sm" },
+  { name: "Solución Adhesiva", category: "Aliado creativo", color: "#39E4FF", size: "sm" },
 ];
 
 const sizeStyles = {

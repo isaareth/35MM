@@ -1,10 +1,10 @@
 @import 'tailwindcss';
 
 @theme {
-  --color-purple: #6023CD;
-  --color-purple-bright: #8D3EF6;
-  --color-neon: #6EF9F4;
-  --color-ink: #191718;
+  --color-purple: #4820B7;
+  --color-purple-bright: #8446F3;
+  --color-neon: #39E4FF;
+  --color-ink: #191818;
   --font-display: var(--font-barlow), sans-serif;
   --font-body: var(--font-inter), sans-serif;
   --font-editorial: var(--font-eb-garamond), serif;
@@ -20,7 +20,7 @@ html {
 }
 
 body {
-  background-color: #191718;
+  background-color: #191818;
   color: #ffffff;
   font-family: var(--font-inter), sans-serif;
   overflow-x: hidden;
@@ -32,8 +32,8 @@ body {
 }
 
 ::selection {
-  background: #6023CD;
-  color: #6EF9F4;
+  background: #4820B7;
+  color: #39E4FF;
 }
 
 @keyframes grain {

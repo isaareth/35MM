@@ -24,7 +24,7 @@ const editions: Edition[] = [
       "La primera edición que abrió el telón para el festival. Los equipos exploraron la noción del tiempo, las despedidas y los finales inevitables. Una apuesta valiente por un cine íntimo y emotivo.",
     winners: ["Mejor cortometraje", "Mejor dirección", "Mejor guion", "Mejor actuación"],
     categoriesLabel: "Categorías premiadas",
-    color: "#6023CD",
+    color: "#4820B7",
   },
   {
     number: "02",
@@ -36,7 +36,7 @@ const editions: Edition[] = [
       "El silencio como protagonista. Los equipos encontraron en lo no dicho un territorio fértil para historias de amor, pérdida y conexión humana. El festival comenzó a consolidarse en la escena universitaria.",
     winners: ["Mejor cortometraje", "Mejor dirección", "Mejor fotografía", "Premio del público"],
     categoriesLabel: "Categorías premiadas",
-    color: "#8D3EF6",
+    color: "#8446F3",
   },
   {
     number: "03",
@@ -57,7 +57,7 @@ const editions: Edition[] = [
       "Mejor actuación",
     ],
     categoriesLabel: "Categorías a premiar",
-    color: "#6EF9F4",
+    color: "#39E4FF",
   },
 ];
 

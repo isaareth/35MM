@@ -34,9 +34,9 @@ export default function CustomCursor({ state }: Props) {
 
   const variants = {
     default: { width: 12, height: 12, backgroundColor: "#ffffff", border: "none", borderRadius: "50%" },
-    hover: { width: 44, height: 44, backgroundColor: "transparent", border: "1.5px solid #6EF9F4", borderRadius: "50%" },
-    cta: { width: 72, height: 72, backgroundColor: "#6023CD", border: "none", borderRadius: "50%" },
-    drag: { width: 56, height: 56, backgroundColor: "#8D3EF6", border: "none", borderRadius: "4px" },
+    hover: { width: 44, height: 44, backgroundColor: "transparent", border: "1.5px solid #39E4FF", borderRadius: "50%" },
+    cta: { width: 72, height: 72, backgroundColor: "#4820B7", border: "none", borderRadius: "50%" },
+    drag: { width: 56, height: 56, backgroundColor: "#8446F3", border: "none", borderRadius: "4px" },
   };
 
   return (

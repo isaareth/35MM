@@ -114,7 +114,7 @@ export default function About({ onCursorChange }: Props) {
                 onMouseLeave={() => onCursorChange("default")}
               />
               {/* Cyan tint overlay */}
-              <div className="absolute inset-0 mix-blend-color" style={{ backgroundColor: "#6EF9F4", opacity: 0.08 }} />
+              <div className="absolute inset-0 mix-blend-color" style={{ backgroundColor: "#39E4FF", opacity: 0.08 }} />
             </motion.div>
             {/* Floating badge */}
             <motion.div
