@@ -231,7 +231,21 @@ export default function RegistrationForm() {
           checked={acceptedTerms}
           onChange={setAcceptedTerms}
           error={fieldErrors.terms}
-          label="He leído y acepto los términos y condiciones de la inscripción."
+          label={
+            <>
+              He leído y acepto los{" "}
+              <a
+                href="/terminos"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="text-neon underline hover:text-white transition-colors"
+              >
+                términos y condiciones
+              </a>{" "}
+              de la inscripción.
+            </>
+          }
         />
         <Checkbox
           checked={confirmedEligibility}
@@ -299,7 +313,7 @@ function Checkbox({
 }: {
   checked: boolean;
   onChange: (v: boolean) => void;
-  label: string;
+  label: React.ReactNode;
   error?: string;
 }) {
   return (

@@ -6,6 +6,7 @@ const links = [
   { label: "Ediciones", href: "#timeline" },
   { label: "Inscripción", href: "#inscripcion" },
   { label: "Marcas", href: "#marcas" },
+  { label: "Términos", href: "/terminos" },
 ];
 
 interface Props {

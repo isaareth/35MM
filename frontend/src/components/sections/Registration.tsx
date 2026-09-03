@@ -78,7 +78,7 @@ export default function Registration({ onCursorChange }: Props) {
                   Inscríbete ahora →
                 </motion.a>
                 <p className="font-body text-white/40 text-xs mt-4 tracking-wider">
-                  * Inscripciones abren el 1 de septiembre de 2026
+                  * Inscripciones del 2 al 20 de septiembre de 2026
                 </p>
               </div>
             </div>

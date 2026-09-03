@@ -25,3 +25,4 @@ db.sqlite3
 /35mm_Linea Grafica 2025/
 35mm_specs/*.pdf
 !35mm_specs/Brief_35MM_Producciones_TVU.pdf
+/*.pdf
