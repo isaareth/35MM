@@ -13,31 +13,10 @@ interface Edition {
   color: string;
 }
 
+// Orden de exhibición: la edición vigente primero, luego hacia atrás en el
+// tiempo (2026 → 2025 → 2024). `number` conserva el ordinal real de cada
+// edición (01/02/03), independiente del orden en que se muestran aquí.
 const editions: Edition[] = [
-  {
-    number: "01",
-    ordinal: "1ra",
-    title: "El último día",
-    year: "2022",
-    theme: "El tiempo y la despedida",
-    description:
-      "La primera edición que abrió el telón para el festival. Los equipos exploraron la noción del tiempo, las despedidas y los finales inevitables. Una apuesta valiente por un cine íntimo y emotivo.",
-    winners: ["Mejor cortometraje", "Mejor dirección", "Mejor guion", "Mejor actuación"],
-    categoriesLabel: "Categorías premiadas",
-    color: "#4820B7",
-  },
-  {
-    number: "02",
-    ordinal: "2da",
-    title: "Lo que no se dice",
-    year: "2023",
-    theme: "El silencio como lenguaje",
-    description:
-      "El silencio como protagonista. Los equipos encontraron en lo no dicho un territorio fértil para historias de amor, pérdida y conexión humana. El festival comenzó a consolidarse en la escena universitaria.",
-    winners: ["Mejor cortometraje", "Mejor dirección", "Mejor fotografía", "Premio del público"],
-    categoriesLabel: "Categorías premiadas",
-    color: "#8446F3",
-  },
   {
     number: "03",
     ordinal: "3ra",
@@ -58,6 +37,30 @@ const editions: Edition[] = [
     ],
     categoriesLabel: "Categorías a premiar",
     color: "#39E4FF",
+  },
+  {
+    number: "02",
+    ordinal: "2da",
+    title: "Lo que no se dice",
+    year: "2025",
+    theme: "El silencio como lenguaje",
+    description:
+      "El silencio como protagonista. Los equipos encontraron en lo no dicho un territorio fértil para historias de amor, pérdida y conexión humana. El festival comenzó a consolidarse en la escena universitaria.",
+    winners: ["Mejor cortometraje", "Mejor dirección", "Mejor fotografía", "Premio del público"],
+    categoriesLabel: "Categorías premiadas",
+    color: "#8446F3",
+  },
+  {
+    number: "01",
+    ordinal: "1ra",
+    title: "El último día",
+    year: "2024",
+    theme: "El tiempo y la despedida",
+    description:
+      "La primera edición que abrió el telón para el festival. Los equipos exploraron la noción del tiempo, las despedidas y los finales inevitables. Una apuesta valiente por un cine íntimo y emotivo.",
+    winners: ["Mejor cortometraje", "Mejor dirección", "Mejor guion", "Mejor actuación"],
+    categoriesLabel: "Categorías premiadas",
+    color: "#4820B7",
   },
 ];
 

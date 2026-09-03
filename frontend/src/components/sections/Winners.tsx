@@ -17,7 +17,7 @@ const winners: Winner[] = [
     film: "El último día",
     category: "Mejor Cortometraje",
     team: "Equipo Cronos",
-    year: "2022",
+    year: "2024",
     description:
       "Una historia sobre el tiempo que se acaba y las palabras que nunca se dicen. Un viaje emocional que capturó la esencia del festival en su primera edición.",
     img: "https://images.unsplash.com/photo-1542204165-65bf26472b9b?w=600&h=400&fit=crop&auto=format",
@@ -27,7 +27,7 @@ const winners: Winner[] = [
     film: "Adiós sin palabras",
     category: "Premio del Público",
     team: "Frame by Frame",
-    year: "2022",
+    year: "2024",
     description:
       "Un cortometraje de despedidas que resonó profundamente con el público universitario, ganándose el aplauso de todos los presentes.",
     img: "https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?w=600&h=400&fit=crop&auto=format",
@@ -37,7 +37,7 @@ const winners: Winner[] = [
     film: "Lo que no se dice",
     category: "Mejor Cortometraje",
     team: "Silencio Colectivo",
-    year: "2023",
+    year: "2025",
     description:
       "El silencio como lenguaje protagonista. Una pieza de una madurez cinematográfica sorprendente, construida sobre miradas, pausas y espacios vacíos.",
     img: "https://images.unsplash.com/photo-1485095329183-d0797cdc5676?w=600&h=400&fit=crop&auto=format",
@@ -47,7 +47,7 @@ const winners: Winner[] = [
     film: "Ruido de fondo",
     category: "Mejor Fotografía",
     team: "Lente Abierto",
-    year: "2023",
+    year: "2025",
     description:
       "Una fotografía que convirtió los espacios urbanos de Medellín en un personaje más, ganando el premio a la mejor imagen del festival.",
     img: "https://images.unsplash.com/photo-1470338229081-eb5980be28c9?w=600&h=400&fit=crop&auto=format",
