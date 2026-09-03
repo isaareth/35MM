@@ -18,3 +18,10 @@ venv/
 staticfiles/
 db.sqlite3
 .tmp-*
+
+# Reference-only brand/source material (large binaries) — not needed in git
+# history. The actual deliverables derived from these (favicons, copy) are
+# committed as their own small files under frontend/.
+/35mm_Linea Grafica 2025/
+35mm_specs/*.pdf
+!35mm_specs/Brief_35MM_Producciones_TVU.pdf
