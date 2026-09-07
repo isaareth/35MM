@@ -5,6 +5,9 @@ interface Brand {
   category: string;
   color: string;
   size: "lg" | "md" | "sm";
+  /** Path under /public (e.g. "/logos/nombre.png") to a real logo file.
+   * Falls back to the text-mark placeholder when omitted. */
+  logo?: string;
 }
 
 const brands: Brand[] = [
@@ -71,22 +74,39 @@ export default function Brands({ onCursorChange }: Props) {
               onMouseEnter={() => onCursorChange("hover")}
               onMouseLeave={() => onCursorChange("default")}
             >
-              {/* Logo placeholder — text mark */}
-              <div className="text-center">
-                <p
-                  className={`font-display font-black uppercase leading-tight transition-colors duration-300 group-hover:text-white text-white/40 ${
-                    brand.size === "lg" ? "text-3xl md:text-5xl" : brand.size === "md" ? "text-xl md:text-2xl" : "text-base md:text-lg"
-                  }`}
-                  style={{ color: undefined }}
-                >
-                  <span className="group-hover:text-white transition-colors" style={{ color: "rgba(255,255,255,0.35)" }}>
-                    {brand.name}
-                  </span>
-                </p>
-                <p className="font-body text-white/20 text-xs mt-1 tracking-wider group-hover:text-white/40 transition-colors hidden md:block">
-                  {brand.category}
-                </p>
-              </div>
+              {brand.logo ? (
+                // Real logo file: shown at its own colors (no grayscale
+                // treatment — that was only ever a stand-in for a missing
+                // asset), just a subtle opacity lift on hover.
+                <div className="flex flex-col items-center gap-2">
+                  <img
+                    src={brand.logo}
+                    alt={brand.name}
+                    className={`w-auto object-contain opacity-75 group-hover:opacity-100 transition-opacity duration-300 ${
+                      brand.size === "lg" ? "max-h-14 md:max-h-20" : brand.size === "md" ? "max-h-10 md:max-h-14" : "max-h-8 md:max-h-11"
+                    }`}
+                  />
+                  <p className="font-body text-white/20 text-xs tracking-wider group-hover:text-white/40 transition-colors hidden md:block">
+                    {brand.category}
+                  </p>
+                </div>
+              ) : (
+                /* Logo placeholder — text mark, until the real file arrives */
+                <div className="text-center">
+                  <p
+                    className={`font-display font-black uppercase leading-tight transition-colors duration-300 group-hover:text-white text-white/40 ${
+                      brand.size === "lg" ? "text-3xl md:text-5xl" : brand.size === "md" ? "text-xl md:text-2xl" : "text-base md:text-lg"
+                    }`}
+                  >
+                    <span className="group-hover:text-white transition-colors" style={{ color: "rgba(255,255,255,0.35)" }}>
+                      {brand.name}
+                    </span>
+                  </p>
+                  <p className="font-body text-white/20 text-xs mt-1 tracking-wider group-hover:text-white/40 transition-colors hidden md:block">
+                    {brand.category}
+                  </p>
+                </div>
+              )}
 
               {/* Dot accent */}
               <motion.div
