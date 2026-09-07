@@ -22,6 +22,7 @@ export default function AdminDashboardPage() {
   const [search, setSearch] = useState("");
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
+  const [selected, setSelected] = useState<RegistrationRecord | null>(null);
 
   const load = useCallback(async () => {
     if (!getToken()) {
@@ -185,7 +186,11 @@ export default function AdminDashboardPage() {
               {dashboard?.recent_registrations.map((r) => {
                 const leader = leaderOf(r);
                 return (
-                  <div key={r.id} className="py-4 flex items-center justify-between gap-4">
+                  <button
+                    key={r.id}
+                    onClick={() => setSelected(r)}
+                    className="w-full py-4 flex items-center justify-between gap-4 text-left hover:bg-white/5 transition-colors px-2 -mx-2"
+                  >
                     <div>
                       <p className="font-body text-white text-sm">{leader?.full_name ?? "—"}</p>
                       <p className="font-body text-white/40 text-xs">{leader?.institution}</p>
@@ -199,7 +204,7 @@ export default function AdminDashboardPage() {
                         })}
                       </p>
                     </div>
-                  </div>
+                  </button>
                 );
               })}
             </div>
@@ -225,7 +230,7 @@ export default function AdminDashboardPage() {
             <table className="w-full text-left border-collapse min-w-[700px]">
               <thead>
                 <tr className="border-b border-white/20">
-                  {["Fecha", "Líder", "Correo institucional", "Institución", "Integrantes"].map((h) => (
+                  {["Fecha", "Líder", "Correo institucional", "Institución", "Integrantes", ""].map((h) => (
                     <th
                       key={h}
                       className="font-body text-xs text-white/40 tracking-widest uppercase py-3 pr-4"
@@ -239,7 +244,11 @@ export default function AdminDashboardPage() {
                 {filtered.map((r) => {
                   const leader = leaderOf(r);
                   return (
-                    <tr key={r.id} className="border-b border-white/8 hover:bg-white/5 transition-colors">
+                    <tr
+                      key={r.id}
+                      onClick={() => setSelected(r)}
+                      className="border-b border-white/8 hover:bg-white/5 transition-colors cursor-pointer"
+                    >
                       <td className="font-body text-white/60 text-sm py-3 pr-4 whitespace-nowrap">
                         {new Date(r.created_at).toLocaleDateString("es-CO")}
                       </td>
@@ -249,6 +258,9 @@ export default function AdminDashboardPage() {
                       </td>
                       <td className="font-body text-white/60 text-sm py-3 pr-4">{leader?.institution}</td>
                       <td className="font-body text-white/60 text-sm py-3 pr-4">{r.participants.length}</td>
+                      <td className="text-right pr-2">
+                        <span className="font-body text-xs text-neon">Ver →</span>
+                      </td>
                     </tr>
                   );
                 })}
@@ -260,6 +272,102 @@ export default function AdminDashboardPage() {
           </div>
         </section>
       </main>
+
+      {selected && <RegistrationModal registration={selected} onClose={() => setSelected(null)} />}
     </div>
+  );
+}
+
+function RegistrationModal({
+  registration,
+  onClose,
+}: {
+  registration: RegistrationRecord;
+  onClose: () => void;
+}) {
+  const leader = leaderOf(registration);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4 md:p-8"
+      onClick={onClose}
+    >
+      <div
+        className="bg-ink border border-white/15 w-full max-w-2xl max-h-[85vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-start justify-between gap-4 px-6 md:px-8 py-6 border-b border-white/10 sticky top-0 bg-ink">
+          <div>
+            <p className="font-body text-xs text-neon tracking-widest uppercase mb-1">
+              {registration.participants.length} integrantes ·{" "}
+              {new Date(registration.created_at).toLocaleString("es-CO", {
+                dateStyle: "medium",
+                timeStyle: "short",
+              })}
+            </p>
+            <h3 className="font-display font-black text-white text-2xl uppercase leading-none">
+              {leader?.full_name ?? "Equipo"}
+            </h3>
+          </div>
+          <button
+            onClick={onClose}
+            className="font-body text-white/40 hover:text-white text-2xl leading-none flex-shrink-0"
+            aria-label="Cerrar"
+          >
+            ×
+          </button>
+        </div>
+
+        <div className="px-6 md:px-8 py-6 flex flex-col gap-6">
+          <div className="flex gap-6 flex-wrap">
+            <StatusPill ok={registration.accepted_terms} label="Términos aceptados" />
+            <StatusPill ok={registration.confirmed_eligibility} label="Elegibilidad confirmada" />
+          </div>
+
+          <div className="flex flex-col gap-4">
+            {registration.participants
+              .slice()
+              .sort((a, b) => a.position - b.position)
+              .map((p) => (
+                <div key={p.position} className="border border-white/10 p-5">
+                  <p className="font-body text-xs tracking-widest uppercase text-white/40 mb-3">
+                    Participante {p.position}
+                    {p.is_leader && <span className="text-neon"> · Representante del grupo</span>}
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
+                    <Field label="Nombre completo" value={p.full_name} />
+                    <Field label="Documento de identidad" value={p.document_id} />
+                    <Field label="Institución" value={p.institution} />
+                    <Field label="Correo institucional" value={p.institutional_email} />
+                    <Field label="Celular" value={p.phone} />
+                  </div>
+                </div>
+              ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Field({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="font-body text-[10px] tracking-widest uppercase text-white/30 mb-0.5">{label}</p>
+      <p className="font-body text-white text-sm break-words">{value}</p>
+    </div>
+  );
+}
+
+function StatusPill({ ok, label }: { ok: boolean; label: string }) {
+  return (
+    <span
+      className={`font-body text-xs tracking-widest uppercase px-3 py-1.5 border ${
+        ok ? "border-neon/40 text-neon" : "border-red-400/40 text-red-400"
+      }`}
+    >
+      {ok ? "✓ " : "✕ "}
+      {label}
+    </span>
   );
 }
