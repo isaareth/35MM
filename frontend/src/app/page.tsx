@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Lenis from "lenis";
+import { MotionConfig } from "framer-motion";
 import GrainOverlay from "@/components/GrainOverlay";
 import CustomCursor, { type CursorState } from "@/components/CustomCursor";
 import Navbar from "@/components/Navbar";
@@ -21,7 +22,15 @@ export default function Home() {
 
   useEffect(() => {
     const mq = window.matchMedia("(pointer: coarse)");
-    setIsMobile(mq.matches);
+    const touch = mq.matches;
+    setIsMobile(touch);
+
+    // Lenis re-implements scrolling on top of the native scroll for the
+    // desktop wheel-smoothing effect. On touch devices native scrolling is
+    // already smooth and Lenis's virtual scroll only adds overhead (a
+    // permanent RAF loop plus fighting touch-momentum physics), so it's
+    // skipped entirely on mobile rather than tuned down.
+    if (touch) return;
 
     const lenis = new Lenis({
       duration: 1.3,
@@ -45,22 +54,27 @@ export default function Home() {
   const setCursor = (state: string) => setCursorState(state as CursorState);
 
   return (
-    <div className="bg-ink min-h-screen relative">
-      <GrainOverlay />
-      {!isMobile && <CustomCursor state={cursorState} />}
-      <Navbar onCursorChange={setCursor} />
+    // reducedMotion="user" makes every motion.* component below respect the
+    // OS-level prefers-reduced-motion setting automatically (AC-025) —
+    // transform/layout animations are skipped, opacity fades still play.
+    <MotionConfig reducedMotion="user">
+      <div className="bg-ink min-h-screen relative">
+        <GrainOverlay />
+        {!isMobile && <CustomCursor state={cursorState} />}
+        <Navbar onCursorChange={setCursor} />
 
-      <main>
-        <Hero onCursorChange={setCursor} />
-        <About onCursorChange={setCursor} />
-        <NumberSection />
-        <Timeline onCursorChange={setCursor} />
-        <Stats />
-        <Registration onCursorChange={setCursor} />
-        <Brands onCursorChange={setCursor} />
-        <TVU />
-        <Footer />
-      </main>
-    </div>
+        <main>
+          <Hero onCursorChange={setCursor} />
+          <About onCursorChange={setCursor} />
+          <NumberSection />
+          <Timeline onCursorChange={setCursor} />
+          <Stats />
+          <Registration onCursorChange={setCursor} />
+          <Brands onCursorChange={setCursor} />
+          <TVU />
+          <Footer />
+        </main>
+      </div>
+    </MotionConfig>
   );
 }

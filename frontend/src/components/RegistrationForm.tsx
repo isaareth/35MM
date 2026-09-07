@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, MotionConfig } from "framer-motion";
 
 const MIN_PARTICIPANTS = 4;
 const MAX_PARTICIPANTS = 6;
@@ -144,6 +144,7 @@ export default function RegistrationForm() {
   }
 
   return (
+    <MotionConfig reducedMotion="user">
     <form onSubmit={handleSubmit} className="max-w-4xl mx-auto py-20 px-6" noValidate>
       <p className="font-body text-xs tracking-[0.4em] uppercase text-neon mb-4">3ra Edición · 2026</p>
       <h1
@@ -269,6 +270,7 @@ export default function RegistrationForm() {
         {status === "submitting" ? "Enviando…" : "Enviar inscripción →"}
       </button>
     </form>
+    </MotionConfig>
   );
 }
 

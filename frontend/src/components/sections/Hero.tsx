@@ -134,9 +134,9 @@ export default function Hero({ onCursorChange }: Props) {
         />
       </motion.div>
 
-      {/* TVU corner mark */}
+      {/* TVU corner mark — hidden on mobile, where it collides with the "Conoce más" link in the CTA row below it */}
       <motion.div
-        className="absolute bottom-8 right-8 md:right-16 z-10 flex items-center gap-2"
+        className="hidden md:flex absolute bottom-8 right-8 md:right-16 z-10 items-center gap-2"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1.8 }}

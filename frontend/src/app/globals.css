@@ -73,3 +73,23 @@ body {
   0%, 100% { opacity: 1; }
   50% { opacity: 0; }
 }
+
+/* Touch devices: the grain's feTurbulence + a fixed full-viewport overlay
+   that keeps animating forever is one of the heavier things running on
+   every scroll frame on mobile hardware. Freezing it to a single static
+   frame keeps the texture without the ongoing compositor cost. */
+@media (pointer: coarse) {
+  .grain-animate {
+    animation: none;
+  }
+}
+
+/* Framer Motion's MotionConfig (reducedMotion="user") covers every
+   motion.* component, but these two are hand-written CSS @keyframes, so
+   they need their own prefers-reduced-motion handling (AC-025). */
+@media (prefers-reduced-motion: reduce) {
+  .grain-animate,
+  .ticker-track {
+    animation: none;
+  }
+}

@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, MotionConfig } from "framer-motion";
 
 const reasons = [
   {
@@ -54,6 +54,7 @@ const brands = [
 
 export default function AliadosContent() {
   return (
+    <MotionConfig reducedMotion="user">
     <div className="max-w-screen-xl mx-auto px-6 md:px-16 py-32 md:py-40">
       {/* Header */}
       <motion.div
@@ -177,5 +178,6 @@ export default function AliadosContent() {
         </a>
       </motion.div>
     </div>
+    </MotionConfig>
   );
 }
