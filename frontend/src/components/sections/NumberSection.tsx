@@ -79,7 +79,7 @@ export default function NumberSection() {
           viewport={{ once: true }}
           transition={{ delay: 0.5, duration: 0.8 }}
         >
-          milímetros de pellícula
+          milímetros de película
         </motion.p>
 
         {/* Editorial quote */}
