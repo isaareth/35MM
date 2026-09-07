@@ -47,7 +47,7 @@ export default function TVU() {
                   className="font-display font-black text-purple leading-none"
                   style={{ fontSize: "clamp(5rem, 15vw, 14rem)" }}
                 >
-                  u
+                  U
                 </span>
               </div>
               <p className="font-body text-white/50 text-sm tracking-widest uppercase mt-2">

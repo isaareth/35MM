@@ -141,7 +141,7 @@ export default function Hero({ onCursorChange }: Props) {
         animate={{ opacity: 1 }}
         transition={{ delay: 1.8 }}
       >
-        <span className="font-display font-black text-white/30 text-sm tracking-widest">TVu</span>
+        <span className="font-display font-black text-white/30 text-sm tracking-widest">TVU</span>
       </motion.div>
     </section>
   );
