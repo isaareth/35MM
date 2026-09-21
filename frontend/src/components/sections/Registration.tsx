@@ -25,7 +25,7 @@ const faqs: FAQ[] = [
   },
   {
     q: "¿Qué categorías se premian?",
-    a: "Mejor corto, mejor dirección, mejor guion, mejor sonido, mejor imagen, mejor montaje, mejor dirección de arte y mejor actuación.",
+    a: "Mejor corto, mejor dirección, mejor guion, mejor sonido, mejor imagen, mejor montaje, mejor dirección de arte, mejor actuación y favorito de público.",
   },
   {
     q: "¿Qué pasa con los derechos del cortometraje?",

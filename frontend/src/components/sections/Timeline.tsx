@@ -20,11 +20,11 @@ const editions: Edition[] = [
   {
     number: "03",
     ordinal: "3ra",
-    title: "La temática, muy pronto",
+    title: "El objeto de la satisfacción",
     year: "2026",
-    theme: "Aún no se revela",
+    theme: "Aquello que nos mueve sin que sepamos del todo por qué",
     description:
-      "Cada edición de 35mm se construye alrededor de una pregunta que no busca ser respondida del todo, sino habitada. La temática de esta tercera edición se anunciará antes de la apertura de inscripciones — mientras tanto, empieza a armar tu equipo.",
+      "No siempre sabemos qué nos mueve. Solo sentimos el impulso de volver ahí. 35mm invita a los equipos a filmar ese impulso: la costumbre que no se explica, el objeto que se vuelve ritual, la satisfacción que se persigue sin mapa.",
     winners: [
       "Mejor corto",
       "Mejor dirección",
@@ -34,6 +34,7 @@ const editions: Edition[] = [
       "Mejor montaje",
       "Mejor dirección de arte",
       "Mejor actuación",
+      "Favorito de Público",
     ],
     categoriesLabel: "Categorías a premiar",
     color: "#39E4FF",
