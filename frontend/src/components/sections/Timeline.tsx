@@ -13,6 +13,19 @@ interface Edition {
   color: string;
 }
 
+// Categorías oficiales de premiación, compartidas por las tres ediciones.
+const CATEGORIES = [
+  "Mejor corto",
+  "Mejor dirección",
+  "Mejor guion",
+  "Mejor sonido",
+  "Mejor imagen",
+  "Mejor montaje",
+  "Mejor dirección de arte",
+  "Mejor actuación",
+  "Favorito de Público",
+];
+
 // Orden de exhibición: la edición vigente primero, luego hacia atrás en el
 // tiempo (2026 → 2025 → 2024). `number` conserva el ordinal real de cada
 // edición (01/02/03), independiente del orden en que se muestran aquí.
@@ -25,17 +38,7 @@ const editions: Edition[] = [
     theme: "Aquello que nos mueve sin que sepamos del todo por qué",
     description:
       "No siempre sabemos qué nos mueve. Solo sentimos el impulso de volver ahí. 35mm invita a los equipos a filmar ese impulso: la costumbre que no se explica, el objeto que se vuelve ritual, la satisfacción que se persigue sin mapa.",
-    winners: [
-      "Mejor corto",
-      "Mejor dirección",
-      "Mejor guion",
-      "Mejor sonido",
-      "Mejor imagen",
-      "Mejor montaje",
-      "Mejor dirección de arte",
-      "Mejor actuación",
-      "Favorito de Público",
-    ],
+    winners: CATEGORIES,
     categoriesLabel: "Categorías a premiar",
     color: "#39E4FF",
   },
@@ -47,7 +50,7 @@ const editions: Edition[] = [
     theme: "El silencio como lenguaje",
     description:
       "El silencio como protagonista. Los equipos encontraron en lo no dicho un territorio fértil para historias de amor, pérdida y conexión humana. El festival comenzó a consolidarse en la escena universitaria.",
-    winners: ["Mejor cortometraje", "Mejor dirección", "Mejor fotografía", "Premio del público"],
+    winners: CATEGORIES,
     categoriesLabel: "Categorías premiadas",
     color: "#8446F3",
   },
@@ -59,7 +62,7 @@ const editions: Edition[] = [
     theme: "El tiempo y la despedida",
     description:
       "La primera edición que abrió el telón para el festival. Los equipos exploraron la noción del tiempo, las despedidas y los finales inevitables. Una apuesta valiente por un cine íntimo y emotivo.",
-    winners: ["Mejor cortometraje", "Mejor dirección", "Mejor guion", "Mejor actuación"],
+    winners: CATEGORIES,
     categoriesLabel: "Categorías premiadas",
     color: "#4820B7",
   },
