@@ -3,6 +3,7 @@ from django.urls import path
 from .auth_views import LoginView, LogoutView
 from .views import (
     AdminDashboardView,
+    AdminRegistrationDeleteView,
     AdminRegistrationExportView,
     AdminRegistrationListView,
     RegistrationCreateView,
@@ -18,5 +19,10 @@ urlpatterns = [
         "admin/registrations/export/",
         AdminRegistrationExportView.as_view(),
         name="admin-registration-export",
+    ),
+    path(
+        "admin/registrations/<uuid:pk>/",
+        AdminRegistrationDeleteView.as_view(),
+        name="admin-registration-delete",
     ),
 ]

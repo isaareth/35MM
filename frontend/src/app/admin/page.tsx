@@ -273,7 +273,16 @@ export default function AdminDashboardPage() {
         </section>
       </main>
 
-      {selected && <RegistrationModal registration={selected} onClose={() => setSelected(null)} />}
+      {selected && (
+        <RegistrationModal
+          registration={selected}
+          onClose={() => setSelected(null)}
+          onDeleted={() => {
+            setSelected(null);
+            load();
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -281,11 +290,31 @@ export default function AdminDashboardPage() {
 function RegistrationModal({
   registration,
   onClose,
+  onDeleted,
 }: {
   registration: RegistrationRecord;
   onClose: () => void;
+  onDeleted: () => void;
 }) {
   const leader = leaderOf(registration);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  const handleDelete = async () => {
+    setDeleting(true);
+    setDeleteError(null);
+    try {
+      const res = await adminFetch(`/api/admin/registrations/${registration.id}/`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error("delete failed");
+      onDeleted();
+    } catch {
+      setDeleteError("No pudimos eliminar el equipo. Intenta de nuevo.");
+      setDeleting(false);
+    }
+  };
 
   return (
     <div
@@ -343,6 +372,43 @@ function RegistrationModal({
                   </div>
                 </div>
               ))}
+          </div>
+
+          <div className="border-t border-white/10 pt-6">
+            {!confirmingDelete ? (
+              <button
+                onClick={() => setConfirmingDelete(true)}
+                className="font-body text-xs tracking-widest uppercase text-red-400/70 hover:text-red-400 transition-colors"
+              >
+                Eliminar equipo
+              </button>
+            ) : (
+              <div className="border border-red-400/30 bg-red-400/5 p-4 flex flex-col gap-3">
+                <p className="font-body text-sm text-red-200">
+                  ¿Eliminar este equipo? Esta acción no se puede deshacer.
+                </p>
+                {deleteError && <p className="font-body text-xs text-red-400">{deleteError}</p>}
+                <div className="flex gap-3">
+                  <button
+                    onClick={handleDelete}
+                    disabled={deleting}
+                    className="font-body text-xs font-semibold tracking-widest uppercase px-5 py-2.5 bg-red-500/90 text-white hover:bg-red-500 transition-colors disabled:opacity-50"
+                  >
+                    {deleting ? "Eliminando…" : "Sí, eliminar"}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setConfirmingDelete(false);
+                      setDeleteError(null);
+                    }}
+                    disabled={deleting}
+                    className="font-body text-xs tracking-widest uppercase px-5 py-2.5 border border-white/20 text-white/60 hover:text-white transition-colors disabled:opacity-50"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

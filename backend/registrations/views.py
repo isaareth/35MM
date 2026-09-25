@@ -1,4 +1,5 @@
 from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.response import Response
@@ -53,6 +54,20 @@ class AdminDashboardView(APIView):
                 "recent_registrations": RegistrationReadSerializer(recent, many=True).data,
             }
         )
+
+
+class AdminRegistrationDeleteView(APIView):
+    """DELETE /api/admin/registrations/<uuid:pk>/ — lets an admin remove a
+    registration (e.g. a duplicate entry) at their discretion. Deleting a
+    Registration cascades to its Participant rows (models.py FK on_delete=
+    CASCADE); this is a hard delete, there is no undo."""
+
+    permission_classes = [IsAdminUser]
+
+    def delete(self, request, pk):
+        registration = get_object_or_404(Registration, pk=pk)
+        registration.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class AdminRegistrationExportView(APIView):
