@@ -124,7 +124,7 @@ def _send_via_gmail(to_email: str, subject: str, body: str) -> None:
     msg["From"] = settings.EMAIL_FROM_ADDRESS
     msg["To"] = to_email
 
-    with smtplib.SMTP("smtp.gmail.com", 587) as server:
+    with smtplib.SMTP("smtp.gmail.com", 587, timeout=10) as server:
         server.starttls()
         server.login(settings.EMAIL_FROM_ADDRESS, settings.GMAIL_APP_PASSWORD)
         server.sendmail(settings.EMAIL_FROM_ADDRESS, [to_email], msg.as_string())
