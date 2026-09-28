@@ -25,6 +25,13 @@ class Registration(models.Model):
         "de educación superior en el Valle de Aburrá."
     )
     created_at = models.DateTimeField(auto_now_add=True)
+    confirmation_email_sent_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Se llena solo cuando el envío del correo de confirmación tuvo éxito "
+        "(nunca al momento de intentarlo) — permite reintentar envíos masivos sin "
+        "duplicar correos a quien ya lo recibió.",
+    )
 
     def __str__(self) -> str:
         leader = self.participants.filter(is_leader=True).first()

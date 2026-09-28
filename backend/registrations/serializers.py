@@ -100,5 +100,6 @@ class RegistrationReadSerializer(serializers.ModelSerializer):
             "accepted_terms",
             "confirmed_eligibility",
             "created_at",
+            "confirmation_email_sent_at",
             "participants",
         ]

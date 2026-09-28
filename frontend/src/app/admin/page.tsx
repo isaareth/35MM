@@ -10,6 +10,7 @@ import {
   leaderOf,
   type DashboardData,
   type RegistrationRecord,
+  type SendConfirmationsResult,
 } from "@/lib/adminApi";
 
 type Status = "loading" | "ready" | "error";
@@ -23,6 +24,21 @@ export default function AdminDashboardPage() {
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
   const [selected, setSelected] = useState<RegistrationRecord | null>(null);
+  const [sendingConfirmations, setSendingConfirmations] = useState(false);
+  const [sendResult, setSendResult] = useState<SendConfirmationsResult | null>(null);
+  const [sendError, setSendError] = useState<string | null>(null);
+
+  // Refetches without touching `status`, so a result banner (bulk-send,
+  // etc.) isn't wiped out by the full-page "Cargando…" screen that load()
+  // shows on every call.
+  const refreshQuietly = useCallback(async () => {
+    const [dashboardRes, listRes] = await Promise.all([
+      adminFetch("/api/admin/dashboard/"),
+      adminFetch("/api/admin/registrations/"),
+    ]);
+    if (dashboardRes.ok) setDashboard(await dashboardRes.json());
+    if (listRes.ok) setRegistrations(await listRes.json());
+  }, []);
 
   const load = useCallback(async () => {
     if (!getToken()) {
@@ -85,6 +101,26 @@ export default function AdminDashboardPage() {
       setExportError("No pudimos generar el Excel. Intenta de nuevo.");
     } finally {
       setExporting(false);
+    }
+  };
+
+  const pendingCount = registrations.filter((r) => !r.confirmation_email_sent_at).length;
+
+  const handleSendConfirmations = async () => {
+    setSendingConfirmations(true);
+    setSendError(null);
+    setSendResult(null);
+    try {
+      const res = await adminFetch("/api/admin/registrations/send-confirmations/", {
+        method: "POST",
+      });
+      if (!res.ok) throw new Error("send failed");
+      setSendResult(await res.json());
+      await refreshQuietly();
+    } catch {
+      setSendError("No pudimos enviar las confirmaciones. Intenta de nuevo.");
+    } finally {
+      setSendingConfirmations(false);
     }
   };
 
@@ -173,6 +209,57 @@ export default function AdminDashboardPage() {
             </div>
           </div>
         </div>
+
+        {/* Correos de confirmación */}
+        <section className="mb-12 border border-white/10 p-6 md:p-8">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <p className="font-body text-white/40 text-xs tracking-widest uppercase mb-1">
+                Correos de confirmación
+              </p>
+              <p className="font-body text-white text-sm">
+                {pendingCount === 0
+                  ? "Todos los equipos ya tienen su confirmación enviada."
+                  : `${pendingCount} equipo${pendingCount === 1 ? "" : "s"} sin correo de confirmación enviado.`}
+              </p>
+            </div>
+            <button
+              onClick={handleSendConfirmations}
+              disabled={sendingConfirmations || pendingCount === 0}
+              className="flex-shrink-0 font-body font-semibold text-sm tracking-widest uppercase px-6 py-3 bg-purple text-white hover:bg-neon hover:text-ink transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              {sendingConfirmations
+                ? "Enviando…"
+                : `Enviar confirmaciones pendientes${pendingCount ? ` (${pendingCount})` : ""}`}
+            </button>
+          </div>
+
+          {sendError && <p className="font-body text-xs text-red-400 mt-4">{sendError}</p>}
+
+          {sendResult && (
+            <div className="mt-4 border-t border-white/10 pt-4">
+              <p className="font-body text-sm text-neon">
+                {sendResult.sent_count} correo{sendResult.sent_count === 1 ? "" : "s"} enviado
+                {sendResult.sent_count === 1 ? "" : "s"} con éxito.
+              </p>
+              {sendResult.failed.length > 0 && (
+                <div className="mt-3">
+                  <p className="font-body text-xs text-red-400 mb-2">
+                    {sendResult.failed.length} fallaron (la inscripción sigue guardada, solo no
+                    salió el correo — revisa el proveedor de correo):
+                  </p>
+                  <ul className="flex flex-col gap-1">
+                    {sendResult.failed.map((f) => (
+                      <li key={f.id} className="font-body text-xs text-white/50">
+                        {f.leader_name ?? "—"} · {f.leader_email ?? "—"}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
+        </section>
 
         {/* Últimas inscripciones */}
         <section className="mb-12">
@@ -351,6 +438,10 @@ function RegistrationModal({
           <div className="flex gap-6 flex-wrap">
             <StatusPill ok={registration.accepted_terms} label="Términos aceptados" />
             <StatusPill ok={registration.confirmed_eligibility} label="Elegibilidad confirmada" />
+            <StatusPill
+              ok={Boolean(registration.confirmation_email_sent_at)}
+              label="Correo de confirmación enviado"
+            />
           </div>
 
           <div className="flex flex-col gap-4">

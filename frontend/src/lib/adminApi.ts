@@ -56,6 +56,7 @@ export interface RegistrationRecord {
   accepted_terms: boolean;
   confirmed_eligibility: boolean;
   created_at: string;
+  confirmation_email_sent_at: string | null;
   participants: Participant[];
 }
 
@@ -63,6 +64,11 @@ export interface DashboardData {
   total_teams: number;
   total_participants: number;
   recent_registrations: RegistrationRecord[];
+}
+
+export interface SendConfirmationsResult {
+  sent_count: number;
+  failed: { id: string; leader_name: string | null; leader_email: string | null }[];
 }
 
 export function leaderOf(registration: RegistrationRecord): Participant | undefined {

@@ -1,5 +1,8 @@
+import time
+
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.response import Response
@@ -23,7 +26,9 @@ class RegistrationCreateView(APIView):
         registration = serializer.save()
 
         # A failed email must never undo an already-persisted registration (AC-013).
-        send_registration_confirmation(registration)
+        if send_registration_confirmation(registration):
+            registration.confirmation_email_sent_at = timezone.now()
+            registration.save(update_fields=["confirmation_email_sent_at"])
 
         return Response(
             RegistrationReadSerializer(registration).data, status=status.HTTP_201_CREATED
@@ -68,6 +73,50 @@ class AdminRegistrationDeleteView(APIView):
         registration = get_object_or_404(Registration, pk=pk)
         registration.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class AdminSendConfirmationsView(APIView):
+    """POST /api/admin/registrations/send-confirmations/ — sends the
+    confirmation email to every registration that doesn't have one marked
+    as sent yet (confirmation_email_sent_at is null). Safe to call
+    repeatedly: a team whose email already succeeded is skipped, so this
+    can be used both to catch up everyone registered before email was
+    working and, going forward, to retry just the ones that failed.
+
+    Runs synchronously in the request/response cycle (no task queue in
+    this project) — fine at this scale (tens of teams), but a small delay
+    between sends keeps it under Resend's rate limit and a real deploy
+    timeout could still cut off an unusually large batch mid-way; that's
+    safe too, since already-sent ones are already marked and won't be
+    resent on a retry.
+    """
+
+    permission_classes = [IsAdminUser]
+
+    def post(self, request):
+        pending = Registration.objects.filter(
+            confirmation_email_sent_at__isnull=True
+        ).prefetch_related("participants")
+
+        sent = []
+        failed = []
+        for registration in pending:
+            if send_registration_confirmation(registration):
+                registration.confirmation_email_sent_at = timezone.now()
+                registration.save(update_fields=["confirmation_email_sent_at"])
+                sent.append(str(registration.id))
+            else:
+                leader = registration.leader
+                failed.append(
+                    {
+                        "id": str(registration.id),
+                        "leader_name": leader.full_name if leader else None,
+                        "leader_email": leader.institutional_email if leader else None,
+                    }
+                )
+            time.sleep(0.15)
+
+        return Response({"sent_count": len(sent), "failed": failed})
 
 
 class AdminRegistrationExportView(APIView):

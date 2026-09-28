@@ -151,8 +151,9 @@ LOGGING = {
 }
 
 # --- 35mm-specific configuration ---
-EMAIL_PROVIDER = env("EMAIL_PROVIDER", default="console")  # console | resend
+EMAIL_PROVIDER = env("EMAIL_PROVIDER", default="console")  # console | resend | gmail
 RESEND_API_KEY = env("EMAIL_API_KEY", default="")
+GMAIL_APP_PASSWORD = env("EMAIL_APP_PASSWORD", default="")
 EMAIL_FROM_ADDRESS = env("EMAIL_FROM_ADDRESS", default="no-reply@35mm.example.com")
 FESTIVAL_CONTACT_EMAIL = env("FESTIVAL_CONTACT_EMAIL", default="35mm@eafit.edu.co")
 SHORTFILM_FORM_URL = env("SHORTFILM_FORM_URL", default="")
