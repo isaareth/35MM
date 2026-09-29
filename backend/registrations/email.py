@@ -1,4 +1,7 @@
 import logging
+import smtplib
+import socket
+from email.mime.text import MIMEText
 
 from django.conf import settings
 
@@ -112,19 +115,30 @@ def _send_via_console(to_email: str, subject: str, body: str) -> None:
     logger.info("[EMAIL:console] To=%s Subject=%s\n%s", to_email, subject, body)
 
 
+class _IPv4SMTP_SSL(smtplib.SMTP_SSL):
+    """smtplib.SMTP_SSL, but forced to connect over IPv4.
+
+    Railway's outbound networking has no usable IPv6 route (same class of
+    issue as the Supabase direct-connection problem elsewhere in this
+    project), so the default dual-stack getaddrinfo() picks an AAAA record
+    for smtp.gmail.com and fails with "Network is unreachable"."""
+
+    def _get_socket(self, host, port, timeout):
+        addr_info = socket.getaddrinfo(host, port, socket.AF_INET, socket.SOCK_STREAM)
+        sock = socket.create_connection(addr_info[0][4], timeout)
+        return self.context.wrap_socket(sock, server_hostname=self._host)
+
+
 def _send_via_gmail(to_email: str, subject: str, body: str) -> None:
     """Sends through Gmail's SMTP server, authenticated with an App Password
     (requires 2-Step Verification enabled on the sending Gmail account —
     regular account passwords are rejected by Gmail's SMTP for this)."""
-    import smtplib
-    from email.mime.text import MIMEText
-
     msg = MIMEText(body, "plain", "utf-8")
     msg["Subject"] = subject
     msg["From"] = settings.EMAIL_FROM_ADDRESS
     msg["To"] = to_email
 
-    with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=10) as server:
+    with _IPv4SMTP_SSL("smtp.gmail.com", 465, timeout=10) as server:
         server.login(settings.EMAIL_FROM_ADDRESS, settings.GMAIL_APP_PASSWORD)
         server.sendmail(settings.EMAIL_FROM_ADDRESS, [to_email], msg.as_string())
 
