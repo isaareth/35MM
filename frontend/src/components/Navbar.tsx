@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useRegistrationsOpen } from "@/lib/useRegistrationsOpen";
 
 const links = [
   { label: "Qué es", href: "#que-es" },
@@ -16,6 +17,7 @@ interface Props {
 export default function Navbar({ onCursorChange }: Props) {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const registrationsOpen = useRegistrationsOpen();
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 60);
@@ -63,7 +65,7 @@ export default function Navbar({ onCursorChange }: Props) {
             onMouseEnter={() => onCursorChange("cta")}
             onMouseLeave={() => onCursorChange("default")}
           >
-            Inscríbete
+            {registrationsOpen ? "Inscríbete" : "Inscripciones cerradas"}
           </a>
         </div>
 
@@ -116,7 +118,7 @@ export default function Navbar({ onCursorChange }: Props) {
               transition={{ delay: links.length * 0.07 + 0.1, duration: 0.5 }}
               onClick={() => setMenuOpen(false)}
             >
-              Inscríbete →
+              {registrationsOpen ? "Inscríbete →" : "Inscripciones cerradas"}
             </motion.a>
           </motion.div>
         )}

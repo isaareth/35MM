@@ -8,10 +8,12 @@ from .views import (
     AdminRegistrationListView,
     AdminSendConfirmationsView,
     RegistrationCreateView,
+    RegistrationStatusView,
 )
 
 urlpatterns = [
     path("registrations/", RegistrationCreateView.as_view(), name="registration-create"),
+    path("registrations/status/", RegistrationStatusView.as_view(), name="registration-status"),
     path("auth/login/", LoginView.as_view(), name="auth-login"),
     path("auth/logout/", LogoutView.as_view(), name="auth-logout"),
     path("admin/dashboard/", AdminDashboardView.as_view(), name="admin-dashboard"),

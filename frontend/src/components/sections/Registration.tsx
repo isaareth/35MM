@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useRegistrationsOpen } from "@/lib/useRegistrationsOpen";
 
 interface FAQ {
   q: string;
@@ -39,6 +40,7 @@ interface Props {
 
 export default function Registration({ onCursorChange }: Props) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const registrationsOpen = useRegistrationsOpen();
 
   return (
     <section id="inscripcion" className="bg-ink py-32 md:py-40 overflow-hidden">
@@ -67,19 +69,32 @@ export default function Registration({ onCursorChange }: Props) {
                 </p>
               </div>
               <div className="mt-10">
-                <motion.a
-                  href="/inscripcion"
-                  className="inline-block w-full md:w-auto text-center font-body font-semibold text-sm tracking-widest uppercase px-10 py-5 bg-neon text-ink hover:bg-white transition-all duration-300"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onMouseEnter={() => onCursorChange("cta")}
-                  onMouseLeave={() => onCursorChange("default")}
-                >
-                  Inscríbete ahora →
-                </motion.a>
-                <p className="font-body text-white/40 text-xs mt-4 tracking-wider">
-                  * Inscripciones del 2 al 20 de septiembre de 2026
-                </p>
+                {registrationsOpen ? (
+                  <>
+                    <motion.a
+                      href="/inscripcion"
+                      className="inline-block w-full md:w-auto text-center font-body font-semibold text-sm tracking-widest uppercase px-10 py-5 bg-neon text-ink hover:bg-white transition-all duration-300"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onMouseEnter={() => onCursorChange("cta")}
+                      onMouseLeave={() => onCursorChange("default")}
+                    >
+                      Inscríbete ahora →
+                    </motion.a>
+                    <p className="font-body text-white/40 text-xs mt-4 tracking-wider">
+                      * Inscripciones del 2 al 20 de septiembre de 2026
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <div className="inline-block w-full md:w-auto text-center font-body font-semibold text-sm tracking-widest uppercase px-10 py-5 border border-white/25 text-white/50">
+                      Inscripciones cerradas
+                    </div>
+                    <p className="font-body text-white/40 text-xs mt-4 tracking-wider">
+                      Te esperamos en la próxima edición de 35mm.
+                    </p>
+                  </>
+                )}
               </div>
             </div>
 

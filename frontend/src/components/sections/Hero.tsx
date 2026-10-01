@@ -1,5 +1,6 @@
 import { useRef } from "react";
 import { motion, useScroll, useTransform, type Variants } from "framer-motion";
+import { useRegistrationsOpen } from "@/lib/useRegistrationsOpen";
 
 interface Props {
   onCursorChange: (s: "default" | "hover" | "cta" | "drag") => void;
@@ -17,6 +18,7 @@ const item: Variants = {
 
 export default function Hero({ onCursorChange }: Props) {
   const ref = useRef<HTMLElement>(null);
+  const registrationsOpen = useRegistrationsOpen();
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
   const bgY = useTransform(scrollYProgress, [0, 1], ["0%", "35%"]);
   const textY = useTransform(scrollYProgress, [0, 1], ["0%", "20%"]);
@@ -104,8 +106,10 @@ export default function Hero({ onCursorChange }: Props) {
             onMouseEnter={() => onCursorChange("cta")}
             onMouseLeave={() => onCursorChange("default")}
           >
-            Inscríbete
-            <span className="group-hover:translate-x-1 transition-transform">→</span>
+            {registrationsOpen ? "Inscríbete" : "Inscripciones cerradas"}
+            {registrationsOpen && (
+              <span className="group-hover:translate-x-1 transition-transform">→</span>
+            )}
           </a>
           <a
             href="#que-es"

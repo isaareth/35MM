@@ -1,5 +1,6 @@
 import time
 
+from django.conf import settings
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -14,6 +15,20 @@ from .models import Participant, Registration
 from .serializers import RegistrationCreateSerializer, RegistrationReadSerializer
 
 
+class RegistrationStatusView(APIView):
+    """GET /api/registrations/status/ — public; lets the frontend know
+    whether to show the registration form or a "closed" message.
+    Unthrottled: it's a cheap read fetched by several sections on every
+    page load, and the global anon rate (5/hour) is sized for the
+    registration-submission endpoint, not this one."""
+
+    permission_classes = [AllowAny]
+    throttle_classes = []
+
+    def get(self, request):
+        return Response({"open": settings.REGISTRATIONS_OPEN})
+
+
 class RegistrationCreateView(APIView):
     """POST /api/registrations/ — public, rate-limited by AnonRateThrottle
     (settings.REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"])."""
@@ -21,6 +36,12 @@ class RegistrationCreateView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
+        if not settings.REGISTRATIONS_OPEN:
+            return Response(
+                {"detail": "Las inscripciones para esta edición ya cerraron. ¡Te esperamos en la próxima edición de 35mm!"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
         serializer = RegistrationCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         registration = serializer.save()
@@ -73,6 +94,22 @@ class AdminRegistrationDeleteView(APIView):
         registration = get_object_or_404(Registration, pk=pk)
         registration.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class AdminRegistrationBulkDeleteView(APIView):
+    """POST /api/admin/registrations/bulk-delete/ — deletes several
+    registrations at once (e.g. clearing out test entries), same
+    cascade/no-undo semantics as AdminRegistrationDeleteView."""
+
+    permission_classes = [IsAdminUser]
+
+    def post(self, request):
+        ids = request.data.get("ids")
+        if not isinstance(ids, list) or not ids:
+            return Response({"detail": "ids must be a non-empty list."}, status=400)
+
+        deleted_count, _ = Registration.objects.filter(id__in=ids).delete()
+        return Response({"deleted_count": deleted_count})
 
 
 class AdminSendConfirmationsView(APIView):
