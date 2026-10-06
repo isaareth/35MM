@@ -170,6 +170,12 @@ export default function AdminDashboardPage() {
           </span>
         </div>
         <div className="flex items-center gap-4">
+          <a
+            href="/admin/charla"
+            className="font-body text-xs tracking-widest uppercase text-white/50 hover:text-neon transition-colors"
+          >
+            Charla →
+          </a>
           <span className="font-body text-xs text-white/40 hidden md:inline">{getUsername()}</span>
           <button
             onClick={handleLogout}

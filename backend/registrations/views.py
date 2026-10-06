@@ -7,12 +7,22 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.response import Response
+from rest_framework.throttling import AnonRateThrottle
 from rest_framework.views import APIView
 
 from .email import send_registration_confirmation
-from .excel import build_registrations_workbook, registrations_filename
-from .models import Participant, Registration
-from .serializers import RegistrationCreateSerializer, RegistrationReadSerializer
+from .excel import (
+    build_registrations_workbook,
+    build_talk_registrations_workbook,
+    registrations_filename,
+    talk_registrations_filename,
+)
+from .models import Participant, Registration, TalkRegistration
+from .serializers import (
+    RegistrationCreateSerializer,
+    RegistrationReadSerializer,
+    TalkRegistrationSerializer,
+)
 
 
 class RegistrationStatusView(APIView):
@@ -172,5 +182,49 @@ class AdminRegistrationExportView(APIView):
             content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
         response["Content-Disposition"] = f'attachment; filename="{registrations_filename()}"'
+        workbook.save(response)
+        return response
+
+
+class TalkAnonRateThrottle(AnonRateThrottle):
+    scope = "talk"
+
+
+class TalkRegistrationCreateView(APIView):
+    """POST /api/talk-registrations/ — public individual signup for the talk
+    with Yesenia Valencia. Own, looser throttle than the festival form:
+    attendees often share a campus IP."""
+
+    permission_classes = [AllowAny]
+    throttle_classes = [TalkAnonRateThrottle]
+
+    def post(self, request):
+        serializer = TalkRegistrationSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class AdminTalkRegistrationListView(APIView):
+    """GET /api/admin/talk-registrations/"""
+
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        registrations = TalkRegistration.objects.all().order_by("-created_at")
+        return Response(TalkRegistrationSerializer(registrations, many=True).data)
+
+
+class AdminTalkRegistrationExportView(APIView):
+    """GET /api/admin/talk-registrations/export/ — .xlsx generated server-side."""
+
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        workbook = build_talk_registrations_workbook(TalkRegistration.objects.all())
+        response = HttpResponse(
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+        response["Content-Disposition"] = f'attachment; filename="{talk_registrations_filename()}"'
         workbook.save(response)
         return response

@@ -2,6 +2,7 @@ import uuid
 
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.db.models.functions import Lower
 
 MIN_PARTICIPANTS = 4
 MAX_PARTICIPANTS = 6
@@ -67,3 +68,27 @@ class Participant(models.Model):
 
     def __str__(self) -> str:
         return f"{self.full_name} ({self.institution})"
+
+
+class TalkRegistration(models.Model):
+    """Individual (not team) signup for the talk with Yesenia Valencia."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    full_name = models.CharField("Nombre completo", max_length=200)
+    document_id = models.CharField("Documento de identidad", max_length=50)
+    institution = models.CharField("Institución", max_length=200)
+    email = models.EmailField("Correo electrónico")
+    phone = models.CharField("Celular", max_length=30)
+    accepted_terms = models.BooleanField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                Lower("email"), name="unique_talk_registration_email"
+            )
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.full_name} ({self.email})"

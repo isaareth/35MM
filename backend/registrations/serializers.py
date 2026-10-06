@@ -1,7 +1,13 @@
 from django.db import transaction
 from rest_framework import serializers
 
-from .models import MAX_PARTICIPANTS, MIN_PARTICIPANTS, Participant, Registration
+from .models import (
+    MAX_PARTICIPANTS,
+    MIN_PARTICIPANTS,
+    Participant,
+    Registration,
+    TalkRegistration,
+)
 
 
 class ParticipantSerializer(serializers.ModelSerializer):
@@ -103,3 +109,29 @@ class RegistrationReadSerializer(serializers.ModelSerializer):
             "confirmation_email_sent_at",
             "participants",
         ]
+
+
+class TalkRegistrationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TalkRegistration
+        fields = [
+            "id",
+            "full_name",
+            "document_id",
+            "institution",
+            "email",
+            "phone",
+            "accepted_terms",
+            "created_at",
+        ]
+        read_only_fields = ["id", "created_at"]
+
+    def validate_accepted_terms(self, value):
+        if not value:
+            raise serializers.ValidationError("Debes aceptar los términos y condiciones.")
+        return value
+
+    def validate_email(self, value):
+        if TalkRegistration.objects.filter(email__iexact=value).exists():
+            raise serializers.ValidationError("Este correo ya está inscrito a la charla.")
+        return value

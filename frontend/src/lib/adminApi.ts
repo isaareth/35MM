@@ -71,6 +71,17 @@ export interface SendConfirmationsResult {
   failed: { id: string; leader_name: string | null; leader_email: string | null }[];
 }
 
+export interface TalkRegistrationRecord {
+  id: string;
+  full_name: string;
+  document_id: string;
+  institution: string;
+  email: string;
+  phone: string;
+  accepted_terms: boolean;
+  created_at: string;
+}
+
 export function leaderOf(registration: RegistrationRecord): Participant | undefined {
   return registration.participants.find((p) => p.is_leader);
 }
