@@ -5,8 +5,9 @@ from .models import (
     MAX_PARTICIPANTS,
     MIN_PARTICIPANTS,
     Participant,
+    Event,
+    EventRegistration,
     Registration,
-    TalkRegistration,
 )
 
 
@@ -111,9 +112,28 @@ class RegistrationReadSerializer(serializers.ModelSerializer):
         ]
 
 
-class TalkRegistrationSerializer(serializers.ModelSerializer):
+class EventSerializer(serializers.ModelSerializer):
     class Meta:
-        model = TalkRegistration
+        model = Event
+        fields = [
+            "slug",
+            "title",
+            "speaker",
+            "description",
+            "date",
+            "start_time",
+            "end_time",
+            "location",
+            "open_to_public",
+            "is_open",
+        ]
+
+
+class EventRegistrationCreateSerializer(serializers.ModelSerializer):
+    """The target event comes from the URL and is passed in the context."""
+
+    class Meta:
+        model = EventRegistration
         fields = [
             "id",
             "full_name",
@@ -132,6 +152,25 @@ class TalkRegistrationSerializer(serializers.ModelSerializer):
         return value
 
     def validate_email(self, value):
-        if TalkRegistration.objects.filter(email__iexact=value).exists():
-            raise serializers.ValidationError("Este correo ya está inscrito a la charla.")
+        event = self.context["event"]
+        if EventRegistration.objects.filter(event=event, email__iexact=value).exists():
+            raise serializers.ValidationError("Este correo ya está inscrito a este evento.")
         return value
+
+    def create(self, validated_data):
+        return EventRegistration.objects.create(event=self.context["event"], **validated_data)
+
+
+class EventRegistrationReadSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EventRegistration
+        fields = [
+            "id",
+            "full_name",
+            "document_id",
+            "institution",
+            "email",
+            "phone",
+            "created_at",
+            "attended_at",
+        ]

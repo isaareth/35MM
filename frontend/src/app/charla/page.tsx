@@ -1,15 +1,6 @@
-import type { Metadata } from "next";
-import TalkRegistrationForm from "@/components/TalkRegistrationForm";
+import { redirect } from "next/navigation";
 
-export const metadata: Metadata = {
-  title: "Charla con Yesenia Valencia — 35mm Festival de Cortos",
-  description: "Inscríbete a la charla con Yesenia Valencia del 35mm Festival de Cortos.",
-};
-
-export default function CharlaPage() {
-  return (
-    <div className="bg-ink min-h-screen">
-      <TalkRegistrationForm />
-    </div>
-  );
+// Keeps the first-shared link (/charla) working now that each talk has its own page.
+export default function CharlaRedirect() {
+  redirect("/eventos/yesenia-valencia");
 }

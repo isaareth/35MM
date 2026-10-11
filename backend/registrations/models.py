@@ -70,23 +70,56 @@ class Participant(models.Model):
         return f"{self.full_name} ({self.institution})"
 
 
-class TalkRegistration(models.Model):
-    """Individual (not team) signup for the talk with Yesenia Valencia."""
+class Event(models.Model):
+    """A talk, workshop or podcast session that people sign up for
+    individually (as opposed to the festival's team Registration)."""
+
+    slug = models.SlugField(unique=True)
+    title = models.CharField("Título", max_length=200, help_text='Ej: "Podcast en vivo".')
+    speaker = models.CharField("Invitado", max_length=200, blank=True)
+    description = models.TextField("Descripción", blank=True)
+    date = models.DateField("Fecha", null=True, blank=True)
+    start_time = models.TimeField("Hora de inicio", null=True, blank=True)
+    end_time = models.TimeField("Hora de fin", null=True, blank=True)
+    location = models.CharField("Lugar", max_length=200, blank=True)
+    open_to_public = models.BooleanField("Abierto al público", default=False)
+    is_open = models.BooleanField(
+        "Inscripciones abiertas",
+        default=True,
+        help_text="Desmárcalo para cerrar las inscripciones de este evento.",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = [models.F("date").asc(nulls_last=True), "start_time", "created_at"]
+
+    def __str__(self) -> str:
+        return f"{self.title} — {self.speaker}" if self.speaker else self.title
+
+
+class EventRegistration(models.Model):
+    """Individual signup for an Event."""
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    event = models.ForeignKey(Event, related_name="registrations", on_delete=models.CASCADE)
     full_name = models.CharField("Nombre completo", max_length=200)
     document_id = models.CharField("Documento de identidad", max_length=50)
-    institution = models.CharField("Institución", max_length=200)
+    institution = models.CharField("Institución", max_length=200, blank=True)
     email = models.EmailField("Correo electrónico")
     phone = models.CharField("Celular", max_length=30)
     accepted_terms = models.BooleanField()
     created_at = models.DateTimeField(auto_now_add=True)
+    attended_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Se llena cuando un administrador marca la asistencia el día del evento.",
+    )
 
     class Meta:
         ordering = ["created_at"]
         constraints = [
             models.UniqueConstraint(
-                Lower("email"), name="unique_talk_registration_email"
+                "event", Lower("email"), name="unique_event_registration_email"
             )
         ]
 

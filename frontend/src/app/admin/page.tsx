@@ -171,10 +171,10 @@ export default function AdminDashboardPage() {
         </div>
         <div className="flex items-center gap-4">
           <a
-            href="/admin/charla"
+            href="/admin/eventos"
             className="font-body text-xs tracking-widest uppercase text-white/50 hover:text-neon transition-colors"
           >
-            Charla →
+            Charlas y talleres →
           </a>
           <span className="font-body text-xs text-white/40 hidden md:inline">{getUsername()}</span>
           <button

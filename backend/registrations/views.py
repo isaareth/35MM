@@ -1,6 +1,7 @@
 import time
 
 from django.conf import settings
+from django.db.models import Count, Q
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -12,16 +13,18 @@ from rest_framework.views import APIView
 
 from .email import send_registration_confirmation
 from .excel import (
+    build_event_registrations_workbook,
     build_registrations_workbook,
-    build_talk_registrations_workbook,
+    event_registrations_filename,
     registrations_filename,
-    talk_registrations_filename,
 )
-from .models import Participant, Registration, TalkRegistration
+from .models import Event, EventRegistration, Participant, Registration
 from .serializers import (
+    EventRegistrationCreateSerializer,
+    EventRegistrationReadSerializer,
+    EventSerializer,
     RegistrationCreateSerializer,
     RegistrationReadSerializer,
-    TalkRegistrationSerializer,
 )
 
 
@@ -190,41 +193,123 @@ class TalkAnonRateThrottle(AnonRateThrottle):
     scope = "talk"
 
 
-class TalkRegistrationCreateView(APIView):
-    """POST /api/talk-registrations/ — public individual signup for the talk
-    with Yesenia Valencia. Own, looser throttle than the festival form:
-    attendees often share a campus IP."""
+
+
+class EventListView(APIView):
+    """GET /api/events/ — public listing of talks/workshops."""
+
+    permission_classes = [AllowAny]
+    throttle_classes = []
+
+    def get(self, request):
+        return Response(EventSerializer(Event.objects.all(), many=True).data)
+
+
+class EventDetailView(APIView):
+    """GET /api/events/<slug>/ — public."""
+
+    permission_classes = [AllowAny]
+    throttle_classes = []
+
+    def get(self, request, slug):
+        event = get_object_or_404(Event, slug=slug)
+        return Response(EventSerializer(event).data)
+
+
+class EventRegistrationCreateView(APIView):
+    """POST /api/events/<slug>/registrations/ — public individual signup.
+    Own, looser throttle than the festival form: attendees often share a
+    campus IP."""
 
     permission_classes = [AllowAny]
     throttle_classes = [TalkAnonRateThrottle]
 
-    def post(self, request):
-        serializer = TalkRegistrationSerializer(data=request.data)
+    def post(self, request, slug):
+        event = get_object_or_404(Event, slug=slug)
+        if not event.is_open:
+            return Response(
+                {"detail": "Las inscripciones para este evento ya cerraron."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        serializer = EventRegistrationCreateSerializer(
+            data=request.data, context={"event": event}
+        )
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
-class AdminTalkRegistrationListView(APIView):
-    """GET /api/admin/talk-registrations/"""
+class AdminEventListView(APIView):
+    """GET /api/admin/events/ — events with signup / attendance counts."""
 
     permission_classes = [IsAdminUser]
 
     def get(self, request):
-        registrations = TalkRegistration.objects.all().order_by("-created_at")
-        return Response(TalkRegistrationSerializer(registrations, many=True).data)
+        events = Event.objects.annotate(
+            registered_count=Count("registrations"),
+            attended_count=Count(
+                "registrations", filter=Q(registrations__attended_at__isnull=False)
+            ),
+        )
+        data = []
+        for event in events:
+            item = EventSerializer(event).data
+            item["registered_count"] = event.registered_count
+            item["attended_count"] = event.attended_count
+            data.append(item)
+        return Response(data)
 
 
-class AdminTalkRegistrationExportView(APIView):
-    """GET /api/admin/talk-registrations/export/ — .xlsx generated server-side."""
+class AdminEventRegistrationListView(APIView):
+    """GET /api/admin/events/<slug>/registrations/"""
 
     permission_classes = [IsAdminUser]
 
-    def get(self, request):
-        workbook = build_talk_registrations_workbook(TalkRegistration.objects.all())
+    def get(self, request, slug):
+        event = get_object_or_404(Event, slug=slug)
+        registrations = event.registrations.order_by("full_name")
+        return Response(
+            {
+                "event": EventSerializer(event).data,
+                "registrations": EventRegistrationReadSerializer(registrations, many=True).data,
+            }
+        )
+
+
+class AdminEventExportView(APIView):
+    """GET /api/admin/events/<slug>/export/ — .xlsx generated server-side."""
+
+    permission_classes = [IsAdminUser]
+
+    def get(self, request, slug):
+        event = get_object_or_404(Event, slug=slug)
+        workbook = build_event_registrations_workbook(
+            event, event.registrations.order_by("created_at")
+        )
         response = HttpResponse(
             content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
-        response["Content-Disposition"] = f'attachment; filename="{talk_registrations_filename()}"'
+        response["Content-Disposition"] = (
+            f'attachment; filename="{event_registrations_filename(event)}"'
+        )
         workbook.save(response)
         return response
+
+
+class AdminEventAttendanceView(APIView):
+    """PATCH /api/admin/event-registrations/<uuid>/attendance/ with
+    {"attended": true|false} — marks (or unmarks) a signup as having
+    attended, recording when."""
+
+    permission_classes = [IsAdminUser]
+
+    def patch(self, request, pk):
+        registration = get_object_or_404(EventRegistration, pk=pk)
+        attended = request.data.get("attended")
+        if not isinstance(attended, bool):
+            return Response({"detail": "attended must be true or false."}, status=400)
+
+        registration.attended_at = timezone.now() if attended else None
+        registration.save(update_fields=["attended_at"])
+        return Response(EventRegistrationReadSerializer(registration).data)

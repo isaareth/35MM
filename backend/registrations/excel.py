@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from django.utils import timezone
 from openpyxl import Workbook
 from openpyxl.styles import Font
 from openpyxl.utils import get_column_letter
@@ -50,35 +51,50 @@ def registrations_filename() -> str:
     return f"inscripciones_35mm_{datetime.now():%Y%m%d_%H%M}.xlsx"
 
 
-TALK_HEADERS = ["Fecha de inscripción", "Nombre", "Documento", "Institución", "Correo", "Celular"]
+EVENT_HEADERS = [
+    "Fecha de inscripción",
+    "Nombre",
+    "Documento",
+    "Institución",
+    "Correo",
+    "Celular",
+    "Asistió",
+    "Hora de asistencia",
+]
 
 
-def build_talk_registrations_workbook(talk_registrations) -> Workbook:
+def _local(dt) -> str:
+    return timezone.localtime(dt).strftime("%Y-%m-%d %H:%M")
+
+
+def build_event_registrations_workbook(event, event_registrations) -> Workbook:
     wb = Workbook()
     ws = wb.active
-    ws.title = "Charla Yesenia Valencia"
+    ws.title = (event.speaker or event.title)[:31]
 
-    ws.append(TALK_HEADERS)
+    ws.append(EVENT_HEADERS)
     for cell in ws[1]:
         cell.font = Font(bold=True)
 
-    for r in talk_registrations:
+    for r in event_registrations:
         ws.append(
             [
-                r.created_at.strftime("%Y-%m-%d %H:%M"),
+                _local(r.created_at),
                 r.full_name,
                 r.document_id,
                 r.institution,
                 r.email,
                 r.phone,
+                "Sí" if r.attended_at else "No",
+                _local(r.attended_at) if r.attended_at else "",
             ]
         )
 
-    for i, _ in enumerate(TALK_HEADERS, start=1):
+    for i, _ in enumerate(EVENT_HEADERS, start=1):
         ws.column_dimensions[get_column_letter(i)].width = 26
 
     return wb
 
 
-def talk_registrations_filename() -> str:
-    return f"inscritos_charla_yesenia_valencia_{datetime.now():%Y%m%d_%H%M}.xlsx"
+def event_registrations_filename(event) -> str:
+    return f"inscritos_{event.slug}_{datetime.now():%Y%m%d_%H%M}.xlsx"

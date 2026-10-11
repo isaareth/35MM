@@ -1,6 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import {
+  eventHeading,
+  formatEventDate,
+  formatEventTimes,
+  type EventInfo,
+} from "@/lib/events";
 
 interface FormState {
   full_name: string;
@@ -11,20 +17,65 @@ interface FormState {
 }
 
 const EMPTY: FormState = { full_name: "", document_id: "", institution: "", email: "", phone: "" };
+const REQUIRED: (keyof FormState)[] = ["full_name", "document_id", "email", "phone"];
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 type Status = "idle" | "submitting" | "success" | "error";
 
-export default function TalkRegistrationForm() {
+export default function EventRegistrationForm({ event }: { event: EventInfo }) {
   const [form, setForm] = useState<FormState>(EMPTY);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [status, setStatus] = useState<Status>("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
+  const date = formatEventDate(event.date);
+  const times = formatEventTimes(event.start_time, event.end_time);
+  const details = [
+    date && { label: "Fecha", value: date },
+    times && { label: "Hora", value: times },
+    event.location && { label: "Lugar", value: event.location },
+  ].filter(Boolean) as { label: string; value: string }[];
+
+  const header = (
+    <>
+      <p className="font-body text-xs tracking-[0.4em] uppercase text-neon mb-4">
+        35mm Festival de Cortos · {event.speaker ? event.title : "Inscripción"}
+      </p>
+      <h1
+        className="font-display font-black text-white uppercase leading-none mb-6"
+        style={{ fontSize: "clamp(2.5rem, 7vw, 5.5rem)" }}
+      >
+        {eventHeading(event)}
+      </h1>
+      {event.open_to_public && (
+        <p className="inline-block font-body text-xs tracking-widest uppercase px-3 py-1.5 border border-neon/40 text-neon mb-6">
+          Abierto al público
+        </p>
+      )}
+      {details.length > 0 && (
+        <dl className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8 border-y border-white/10 py-6">
+          {details.map((d) => (
+            <div key={d.label}>
+              <dt className="font-body text-[10px] tracking-widest uppercase text-white/30 mb-1">
+                {d.label}
+              </dt>
+              <dd className="font-body text-white text-sm">{d.value}</dd>
+            </div>
+          ))}
+        </dl>
+      )}
+      {event.description && (
+        <p className="font-body text-white/60 text-sm leading-relaxed mb-10 max-w-xl">
+          {event.description}
+        </p>
+      )}
+    </>
+  );
+
   const validate = (): boolean => {
     const errors: Record<string, string> = {};
-    (Object.keys(EMPTY) as (keyof FormState)[]).forEach((k) => {
+    REQUIRED.forEach((k) => {
       if (!form[k].trim()) errors[k] = "Requerido";
     });
     if (form.email.trim() && !EMAIL_RE.test(form.email.trim())) errors.email = "Correo inválido";
@@ -43,18 +94,21 @@ export default function TalkRegistrationForm() {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL;
       if (!apiUrl) throw new Error("NEXT_PUBLIC_API_URL no está configurada.");
 
-      const res = await fetch(`${apiUrl}/api/talk-registrations/`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          full_name: form.full_name.trim(),
-          document_id: form.document_id.trim(),
-          institution: form.institution.trim(),
-          email: form.email.trim(),
-          phone: form.phone.trim(),
-          accepted_terms: acceptedTerms,
-        }),
-      });
+      const res = await fetch(
+        `${apiUrl}/api/events/${encodeURIComponent(event.slug)}/registrations/`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            full_name: form.full_name.trim(),
+            document_id: form.document_id.trim(),
+            institution: form.institution.trim(),
+            email: form.email.trim(),
+            phone: form.phone.trim(),
+            accepted_terms: acceptedTerms,
+          }),
+        }
+      );
 
       if (!res.ok) {
         const data = await res.json().catch(() => null);
@@ -87,7 +141,29 @@ export default function TalkRegistrationForm() {
           inscrito
         </h1>
         <p className="font-body text-white/60 text-base leading-relaxed">
-          Te esperamos en la charla con Yesenia Valencia.
+          Te esperamos en «{event.speaker ? `${event.title} con ${event.speaker}` : event.title}».
+        </p>
+        {details.length > 0 && (
+          <p className="font-body text-white/40 text-sm mt-2">
+            {details.map((d) => d.value).join(" · ")}
+          </p>
+        )}
+        <a
+          href="/"
+          className="inline-block mt-8 font-body font-semibold text-sm tracking-widest uppercase px-8 py-4 bg-purple text-white hover:bg-neon hover:text-ink transition-all duration-300"
+        >
+          Volver al inicio
+        </a>
+      </div>
+    );
+  }
+
+  if (!event.is_open) {
+    return (
+      <div className="max-w-2xl mx-auto py-20 px-6">
+        {header}
+        <p className="font-body text-sm text-white/70 border border-white/15 px-4 py-4">
+          Las inscripciones para este evento ya cerraron.
         </p>
         <a
           href="/"
@@ -103,25 +179,12 @@ export default function TalkRegistrationForm() {
 
   return (
     <form onSubmit={handleSubmit} className="max-w-2xl mx-auto py-20 px-6" noValidate>
-      <p className="font-body text-xs tracking-[0.4em] uppercase text-neon mb-4">
-        35mm Festival de Cortos · Charla
-      </p>
-      <h1
-        className="font-display font-black text-white uppercase leading-none mb-4"
-        style={{ fontSize: "clamp(2.5rem, 7vw, 5.5rem)" }}
-      >
-        Charla con
-        <br />
-        Yesenia Valencia
-      </h1>
-      <p className="font-body text-white/50 text-sm mb-12 max-w-xl">
-        Inscripción individual: cada persona que quiera asistir debe llenar este formulario.
-      </p>
+      {header}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <Field label="Nombre completo" value={form.full_name} onChange={set("full_name")} error={fieldErrors.full_name} autoComplete="name" />
         <Field label="Documento de identidad" value={form.document_id} onChange={set("document_id")} error={fieldErrors.document_id} />
-        <Field label="Institución" value={form.institution} onChange={set("institution")} error={fieldErrors.institution} />
+        <Field label="Institución o empresa (opcional)" value={form.institution} onChange={set("institution")} error={fieldErrors.institution} />
         <Field label="Correo electrónico" type="email" value={form.email} onChange={set("email")} error={fieldErrors.email} autoComplete="email" />
         <Field label="Celular" type="tel" value={form.phone} onChange={set("phone")} error={fieldErrors.phone} autoComplete="tel" />
       </div>
