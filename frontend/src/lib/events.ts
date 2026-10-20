@@ -4,6 +4,7 @@ export interface EventInfo {
   speaker: string;
   description: string;
   date: string | null;
+  end_date: string | null;
   start_time: string | null;
   end_time: string | null;
   location: string;
@@ -27,16 +28,31 @@ export interface EventRegistrationRecord {
   attended_at: string | null;
 }
 
-/** "2026-10-16" -> "16 de octubre de 2026" (parsed by hand so the date
- * never shifts with the viewer's timezone). */
-export function formatEventDate(date: string | null): string | null {
-  if (!date) return null;
+function parseDate(date: string): Date {
   const [y, m, d] = date.split("-").map(Number);
-  return new Date(y, m - 1, d).toLocaleDateString("es-CO", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
+  return new Date(y, m - 1, d);
+}
+
+/** "2026-10-16" -> "16 de octubre de 2026"; with an end date in the same
+ * month -> "21 y 22 de octubre de 2026". Parsed by hand so the date never
+ * shifts with the viewer's timezone. */
+export function formatEventDate(event: Pick<EventInfo, "date" | "end_date">): string | null {
+  if (!event.date) return null;
+  const start = parseDate(event.date);
+  const full = { day: "numeric", month: "long", year: "numeric" } as const;
+
+  if (!event.end_date || event.end_date === event.date) {
+    return start.toLocaleDateString("es-CO", full);
+  }
+
+  const end = parseDate(event.end_date);
+  const sameMonth =
+    start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear();
+  if (sameMonth) {
+    const month = end.toLocaleDateString("es-CO", { month: "long", year: "numeric" });
+    return `${start.getDate()} y ${end.getDate()} de ${month}`;
+  }
+  return `${start.toLocaleDateString("es-CO", { day: "numeric", month: "long" })} al ${end.toLocaleDateString("es-CO", full)}`;
 }
 
 function formatTime(time: string): string {

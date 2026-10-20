@@ -79,6 +79,9 @@ class Event(models.Model):
     speaker = models.CharField("Invitado", max_length=200, blank=True)
     description = models.TextField("Descripción", blank=True)
     date = models.DateField("Fecha", null=True, blank=True)
+    end_date = models.DateField(
+        "Fecha de fin", null=True, blank=True, help_text="Solo para eventos de varios días."
+    )
     start_time = models.TimeField("Hora de inicio", null=True, blank=True)
     end_time = models.TimeField("Hora de fin", null=True, blank=True)
     location = models.CharField("Lugar", max_length=200, blank=True)

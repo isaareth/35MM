@@ -121,6 +121,7 @@ class EventSerializer(serializers.ModelSerializer):
             "speaker",
             "description",
             "date",
+            "end_date",
             "start_time",
             "end_time",
             "location",

@@ -81,7 +81,7 @@ export default function AdminEventsPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-white/10">
             {events.map((e) => {
-              const when = [formatEventDate(e.date), formatEventTimes(e.start_time, e.end_time)]
+              const when = [formatEventDate(e), formatEventTimes(e.start_time, e.end_time)]
                 .filter(Boolean)
                 .join(" · ");
               return (

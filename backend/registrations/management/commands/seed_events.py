@@ -17,6 +17,15 @@ EVENTS = [
         "location": "Domo de visitantes · Universidad EAFIT",
         "open_to_public": True,
     },
+    {
+        "slug": "taller-diseno-produccion-direccion-arte",
+        "title": "Taller Diseño de Producción y Dirección de Arte",
+        "speaker": "Susana Osorio",
+        "date": date(2026, 10, 21),
+        "end_date": date(2026, 10, 22),
+        "start_time": time(15, 0),
+        "end_time": time(18, 0),
+    },
 ]
 
 

@@ -139,7 +139,7 @@ export default function AdminEventAttendancePage({
     );
   });
 
-  const when = [formatEventDate(event.date), formatEventTimes(event.start_time, event.end_time)]
+  const when = [formatEventDate(event), formatEventTimes(event.start_time, event.end_time)]
     .filter(Boolean)
     .join(" · ");
 

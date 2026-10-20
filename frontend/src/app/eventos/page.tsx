@@ -29,7 +29,7 @@ export default async function EventosPage() {
         ) : (
           <ul className="flex flex-col divide-y divide-white/10 border-y border-white/10">
             {events.map((e) => {
-              const when = [formatEventDate(e.date), formatEventTimes(e.start_time, e.end_time)]
+              const when = [formatEventDate(e), formatEventTimes(e.start_time, e.end_time)]
                 .filter(Boolean)
                 .join(" · ");
               return (

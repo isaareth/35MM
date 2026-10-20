@@ -29,7 +29,7 @@ export default function EventRegistrationForm({ event }: { event: EventInfo }) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
-  const date = formatEventDate(event.date);
+  const date = formatEventDate(event);
   const times = formatEventTimes(event.start_time, event.end_time);
   const details = [
     date && { label: "Fecha", value: date },
