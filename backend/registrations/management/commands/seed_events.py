@@ -26,6 +26,26 @@ EVENTS = [
         "start_time": time(15, 0),
         "end_time": time(18, 0),
     },
+    {
+        "slug": "sony-3-de-noviembre",
+        "title": "Charla",
+        "speaker": "Sony",
+        "date": date(2026, 11, 3),
+        "start_time": time(9, 0),
+    },
+    {
+        "slug": "sony-4-de-noviembre",
+        "title": "Charla",
+        "speaker": "Sony",
+        "date": date(2026, 11, 4),
+        "start_time": time(13, 0),
+    },
+    {
+        "slug": "bicicine",
+        "title": "Bicicine",
+        "date": date(2026, 11, 9),
+        "start_time": time(14, 0),
+    },
 ]
 
 
