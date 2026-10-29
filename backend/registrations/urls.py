@@ -2,6 +2,7 @@ from django.urls import path
 
 from .auth_views import LoginView, LogoutView
 from .views import (
+    AdminAnalyticsView,
     AdminDashboardView,
     AdminEventAttendanceView,
     AdminEventExportView,
@@ -47,6 +48,7 @@ urlpatterns = [
         AdminRegistrationDeleteView.as_view(),
         name="admin-registration-delete",
     ),
+    path("admin/analytics/", AdminAnalyticsView.as_view(), name="admin-analytics"),
     path("admin/events/", AdminEventListView.as_view(), name="admin-event-list"),
     path(
         "admin/events/<slug:slug>/registrations/",

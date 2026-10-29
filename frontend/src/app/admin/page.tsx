@@ -171,6 +171,12 @@ export default function AdminDashboardPage() {
         </div>
         <div className="flex items-center gap-4">
           <a
+            href="/admin/analiticas"
+            className="font-body text-xs tracking-widest uppercase text-white/50 hover:text-neon transition-colors"
+          >
+            Analíticas →
+          </a>
+          <a
             href="/admin/eventos"
             className="font-body text-xs tracking-widest uppercase text-white/50 hover:text-neon transition-colors"
           >

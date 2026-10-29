@@ -11,6 +11,7 @@ from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle
 from rest_framework.views import APIView
 
+from .analytics import build_analytics
 from .email import send_registration_confirmation
 from .excel import (
     build_event_registrations_workbook,
@@ -313,3 +314,13 @@ class AdminEventAttendanceView(APIView):
         registration.attended_at = timezone.now() if attended else None
         registration.save(update_fields=["attended_at"])
         return Response(EventRegistrationReadSerializer(registration).data)
+
+
+class AdminAnalyticsView(APIView):
+    """GET /api/admin/analytics/ — aggregate counts only (no personal data)
+    for the festival registrations and the talks/workshops."""
+
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        return Response(build_analytics())
