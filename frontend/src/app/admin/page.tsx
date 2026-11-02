@@ -133,6 +133,7 @@ export default function AdminDashboardPage() {
     if (filmFilter === "pending" && r.film_submitted) return false;
     if (!search.trim()) return true;
     const q = search.trim().toLowerCase();
+    if (r.film_title.toLowerCase().includes(q)) return true;
     return r.participants.some(
       (p) =>
         p.full_name.toLowerCase().includes(q) ||
@@ -303,9 +304,15 @@ export default function AdminDashboardPage() {
                     onClick={() => setSelected(r)}
                     className="w-full py-4 flex items-center justify-between gap-4 text-left hover:bg-white/5 transition-colors px-2 -mx-2"
                   >
-                    <div>
-                      <p className="font-body text-white text-sm">{leader?.full_name ?? "—"}</p>
-                      <p className="font-body text-white/40 text-xs">{leader?.institution}</p>
+                    <div className="min-w-0">
+                      <p className="font-body text-white text-sm truncate">
+                        {r.film_title || leader?.full_name || "—"}
+                      </p>
+                      <p className="font-body text-white/40 text-xs truncate">
+                        {r.film_title
+                          ? `Líder: ${leader?.full_name ?? "—"} · ${leader?.institution ?? ""}`
+                          : leader?.institution}
+                      </p>
                     </div>
                     <div className="text-right">
                       <p className="font-body text-white/60 text-xs">{r.participants.length} integrantes</p>
@@ -331,10 +338,10 @@ export default function AdminDashboardPage() {
             </h2>
             <input
               type="text"
-              placeholder="Buscar por nombre, institución o correo…"
+              placeholder="Buscar por corto, nombre, institución o correo…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="bg-transparent border border-white/20 font-body text-white text-sm px-4 py-2 outline-none focus:border-neon transition-colors w-full md:w-80"
+              className="bg-transparent border border-white/20 font-body text-white text-sm px-4 py-2 outline-none focus:border-neon transition-colors w-full md:w-96"
             />
           </div>
 
@@ -364,7 +371,7 @@ export default function AdminDashboardPage() {
             <table className="w-full text-left border-collapse min-w-[700px]">
               <thead>
                 <tr className="border-b border-white/20">
-                  {["Fecha", "Líder", "Correo institucional", "Institución", "Integrantes", "Corto", ""].map((h) => (
+                  {["Corto", "Líder", "Correo institucional", "Institución", "Integrantes", "Fecha", ""].map((h) => (
                     <th
                       key={h}
                       className="font-body text-xs text-white/40 tracking-widest uppercase py-3 pr-4"
@@ -383,21 +390,23 @@ export default function AdminDashboardPage() {
                       onClick={() => setSelected(r)}
                       className="border-b border-white/8 hover:bg-white/5 transition-colors cursor-pointer"
                     >
-                      <td className="font-body text-white/60 text-sm py-3 pr-4 whitespace-nowrap">
-                        {new Date(r.created_at).toLocaleDateString("es-CO")}
+                      <td className="font-body text-sm py-3 pr-4">
+                        {r.film_submitted ? (
+                          <span className="text-white font-medium">
+                            <span className="text-neon">✓</span> {r.film_title || "Entregado (sin título)"}
+                          </span>
+                        ) : (
+                          <span className="text-white/25">—</span>
+                        )}
                       </td>
-                      <td className="font-body text-white text-sm py-3 pr-4">{leader?.full_name}</td>
+                      <td className="font-body text-white/80 text-sm py-3 pr-4">{leader?.full_name}</td>
                       <td className="font-body text-white/60 text-sm py-3 pr-4">
                         {leader?.institutional_email}
                       </td>
                       <td className="font-body text-white/60 text-sm py-3 pr-4">{leader?.institution}</td>
                       <td className="font-body text-white/60 text-sm py-3 pr-4">{r.participants.length}</td>
-                      <td className="font-body text-sm py-3 pr-4">
-                        {r.film_submitted ? (
-                          <span className="text-neon">✓ {r.film_title || "Entregado"}</span>
-                        ) : (
-                          <span className="text-white/25">—</span>
-                        )}
+                      <td className="font-body text-white/60 text-sm py-3 pr-4 whitespace-nowrap">
+                        {new Date(r.created_at).toLocaleDateString("es-CO")}
                       </td>
                       <td className="text-right pr-2">
                         <span className="font-body text-xs text-neon">Ver →</span>
@@ -444,6 +453,9 @@ function RegistrationModal({
   onSubmissionSaved: (updated: RegistrationRecord) => void;
 }) {
   const leader = leaderOf(registration);
+  const members = registration.participants
+    .filter((p) => !p.is_leader)
+    .sort((a, b) => a.position - b.position);
   const [filmSubmitted, setFilmSubmitted] = useState(registration.film_submitted);
   const [filmTitle, setFilmTitle] = useState(registration.film_title);
   const [savingFilm, setSavingFilm] = useState(false);
@@ -507,8 +519,12 @@ function RegistrationModal({
               })}
             </p>
             <h3 className="font-display font-black text-white text-2xl uppercase leading-none">
-              {leader?.full_name ?? "Equipo"}
+              {registration.film_title || leader?.full_name || "Equipo"}
             </h3>
+            <p className="font-body text-white/50 text-sm mt-2">
+              {registration.film_title && leader && <>Líder: {leader.full_name}. </>}
+              {members.length > 0 && <>Integrantes: {members.map((p) => p.full_name).join(", ")}.</>}
+            </p>
           </div>
           <button
             onClick={onClose}
