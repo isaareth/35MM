@@ -13,6 +13,7 @@ import {
   type RegistrationRecord,
   type SendConfirmationsResult,
 } from "@/lib/adminApi";
+import GalaTeamPanel from "@/components/admin/GalaTeamPanel";
 
 type Status = "loading" | "ready" | "error";
 
@@ -39,7 +40,10 @@ export default function AdminDashboardPage() {
       adminFetch("/api/admin/registrations/"),
     ]);
     if (dashboardRes.ok) setDashboard(await dashboardRes.json());
-    if (listRes.ok) setRegistrations(await listRes.json());
+    if (!listRes.ok) return null;
+    const list: RegistrationRecord[] = await listRes.json();
+    setRegistrations(list);
+    return list;
   }, []);
 
   const load = useCallback(async () => {
@@ -177,6 +181,12 @@ export default function AdminDashboardPage() {
           </span>
         </div>
         <div className="flex items-center gap-4">
+          <a
+            href="/admin/gala"
+            className="font-body text-xs tracking-widest uppercase text-white/50 hover:text-neon transition-colors"
+          >
+            Gala →
+          </a>
           <a
             href="/admin/analiticas"
             className="font-body text-xs tracking-widest uppercase text-white/50 hover:text-neon transition-colors"
@@ -431,6 +441,11 @@ export default function AdminDashboardPage() {
             setSelected(updated);
             refreshQuietly();
           }}
+          onGalaChanged={async () => {
+            const list = await refreshQuietly();
+            const fresh = list?.find((r) => r.id === selected.id);
+            if (fresh) setSelected(fresh);
+          }}
           onDeleted={() => {
             setSelected(null);
             load();
@@ -446,11 +461,13 @@ function RegistrationModal({
   onClose,
   onDeleted,
   onSubmissionSaved,
+  onGalaChanged,
 }: {
   registration: RegistrationRecord;
   onClose: () => void;
   onDeleted: () => void;
   onSubmissionSaved: (updated: RegistrationRecord) => void;
+  onGalaChanged: () => void | Promise<void>;
 }) {
   const leader = leaderOf(registration);
   const members = registration.participants
@@ -579,6 +596,18 @@ function RegistrationModal({
                 {savingFilm ? "Guardando…" : "Guardar"}
               </button>
             )}
+          </div>
+
+          <div className="border border-white/10 p-5 flex flex-col gap-4">
+            <div>
+              <p className="font-body text-xs text-white/40 tracking-widest uppercase">
+                Invitación a la gala
+              </p>
+              <p className="font-body text-xs text-white/30 mt-1">
+                Cada integrante recibe por correo su propio código QR.
+              </p>
+            </div>
+            <GalaTeamPanel registration={registration} onChanged={onGalaChanged} />
           </div>
 
           <div className="flex flex-col gap-4">

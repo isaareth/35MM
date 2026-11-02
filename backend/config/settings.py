@@ -131,6 +131,7 @@ REST_FRAMEWORK = {
     "DEFAULT_THROTTLE_RATES": {
         "anon": "5/hour",
         "talk": "60/hour",
+        "rsvp": "60/hour",
     },
 }
 
@@ -152,10 +153,19 @@ LOGGING = {
 }
 
 # --- 35mm-specific configuration ---
-EMAIL_PROVIDER = env("EMAIL_PROVIDER", default="console")  # console | resend | gmail
+EMAIL_PROVIDER = env("EMAIL_PROVIDER", default="console")  # console | resend | gmail | webhook
 RESEND_API_KEY = env("EMAIL_API_KEY", default="")
 GMAIL_APP_PASSWORD = env("EMAIL_APP_PASSWORD", default="")
+EMAIL_WEBHOOK_URL = env("EMAIL_WEBHOOK_URL", default="")  # secret: never commit it
 EMAIL_FROM_ADDRESS = env("EMAIL_FROM_ADDRESS", default="no-reply@35mm.example.com")
 FESTIVAL_CONTACT_EMAIL = env("FESTIVAL_CONTACT_EMAIL", default="35mm@eafit.edu.co")
 SHORTFILM_FORM_URL = env("SHORTFILM_FORM_URL", default="")
 REGISTRATIONS_OPEN = env.bool("REGISTRATIONS_OPEN", default=True)
+
+# --- Gala invitations (QR tickets) ---
+FRONTEND_URL = env("FRONTEND_URL", default="https://35mm-tvu.vercel.app").rstrip("/")
+# Invitations stop working after this moment (end of Nov 20 in Colombia).
+GALA_TICKET_EXPIRES_AT = env("GALA_TICKET_EXPIRES_AT", default="2026-11-20T23:59:59-05:00")
+GALA_DATE_LABEL = env("GALA_DATE_LABEL", default="14 de noviembre de 2026")
+GALA_PLACE = env("GALA_PLACE", default="Auditorio Fundadores · Universidad EAFIT")
+GALA_TIME = env("GALA_TIME", default="")  # e.g. "7:00 p. m."; left out of the email when empty

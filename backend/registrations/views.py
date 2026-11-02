@@ -76,7 +76,9 @@ class AdminRegistrationListView(APIView):
     permission_classes = [IsAdminUser]
 
     def get(self, request):
-        registrations = Registration.objects.all().order_by("-created_at")
+        registrations = Registration.objects.all().order_by("-created_at").prefetch_related(
+            "participants__gala_ticket"
+        )
         return Response(RegistrationReadSerializer(registrations, many=True).data)
 
 
@@ -86,7 +88,9 @@ class AdminDashboardView(APIView):
     permission_classes = [IsAdminUser]
 
     def get(self, request):
-        recent = Registration.objects.order_by("-created_at").prefetch_related("participants")[:5]
+        recent = Registration.objects.order_by("-created_at").prefetch_related(
+            "participants__gala_ticket"
+        )[:5]
         return Response(
             {
                 "total_teams": Registration.objects.count(),

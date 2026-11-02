@@ -1,3 +1,4 @@
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from rest_framework import serializers
 
@@ -84,9 +85,12 @@ class RegistrationCreateSerializer(serializers.ModelSerializer):
 
 
 class ParticipantReadSerializer(serializers.ModelSerializer):
+    gala = serializers.SerializerMethodField()
+
     class Meta:
         model = Participant
         fields = [
+            "id",
             "position",
             "is_leader",
             "full_name",
@@ -94,7 +98,24 @@ class ParticipantReadSerializer(serializers.ModelSerializer):
             "institution",
             "institutional_email",
             "phone",
+            "gala",
         ]
+
+    def get_gala(self, participant):
+        """State of the participant's gala invitation (None if never issued)."""
+        try:
+            ticket = participant.gala_ticket
+        except ObjectDoesNotExist:
+            return None
+        return {
+            "sent_at": ticket.sent_at,
+            "rsvp_status": ticket.rsvp_status,
+            "has_plus_one": ticket.has_plus_one,
+            "plus_one_name": ticket.plus_one_name,
+            "used_capacity": ticket.used_capacity,
+            "total_capacity": ticket.total_capacity,
+            "checkin_at": ticket.checkin_at,
+        }
 
 
 class RegistrationReadSerializer(serializers.ModelSerializer):

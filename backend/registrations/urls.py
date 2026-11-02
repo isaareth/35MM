@@ -1,6 +1,16 @@
 from django.urls import path
 
 from .auth_views import LoginView, LogoutView
+from .gala_views import (
+    AdminEmailTestView,
+    AdminGalaSendView,
+    AdminGalaSummaryView,
+    AdminGalaTicketLookupView,
+    AdminGalaValidateView,
+    GalaInvitationDetailView,
+    GalaInvitationQrView,
+    GalaInvitationRsvpView,
+)
 from .views import (
     AdminAnalyticsView,
     AdminDashboardView,
@@ -30,6 +40,21 @@ urlpatterns = [
         EventRegistrationCreateView.as_view(),
         name="event-registration-create",
     ),
+    path(
+        "gala/invitations/<uuid:token>/",
+        GalaInvitationDetailView.as_view(),
+        name="gala-invitation-detail",
+    ),
+    path(
+        "gala/invitations/<uuid:token>/rsvp/",
+        GalaInvitationRsvpView.as_view(),
+        name="gala-invitation-rsvp",
+    ),
+    path(
+        "gala/invitations/<uuid:token>/qr.png",
+        GalaInvitationQrView.as_view(),
+        name="gala-invitation-qr",
+    ),
     path("auth/login/", LoginView.as_view(), name="auth-login"),
     path("auth/logout/", LogoutView.as_view(), name="auth-logout"),
     path("admin/dashboard/", AdminDashboardView.as_view(), name="admin-dashboard"),
@@ -54,6 +79,19 @@ urlpatterns = [
         AdminRegistrationDeleteView.as_view(),
         name="admin-registration-delete",
     ),
+    path(
+        "admin/registrations/<uuid:pk>/gala-invitations/",
+        AdminGalaSendView.as_view(),
+        name="admin-gala-send",
+    ),
+    path(
+        "admin/gala/tickets/<str:token>/",
+        AdminGalaTicketLookupView.as_view(),
+        name="admin-gala-ticket",
+    ),
+    path("admin/email/test/", AdminEmailTestView.as_view(), name="admin-email-test"),
+    path("admin/gala/validate/", AdminGalaValidateView.as_view(), name="admin-gala-validate"),
+    path("admin/gala/summary/", AdminGalaSummaryView.as_view(), name="admin-gala-summary"),
     path("admin/analytics/", AdminAnalyticsView.as_view(), name="admin-analytics"),
     path("admin/events/", AdminEventListView.as_view(), name="admin-event-list"),
     path(

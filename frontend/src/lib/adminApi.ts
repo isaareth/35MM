@@ -1,3 +1,5 @@
+import type { GalaInfo } from "@/lib/gala";
+
 const TOKEN_KEY = "35mm_admin_token";
 const USERNAME_KEY = "35mm_admin_username";
 
@@ -42,6 +44,7 @@ export async function adminFetch(path: string, options: RequestInit = {}): Promi
 }
 
 export interface Participant {
+  id: number;
   position: number;
   is_leader: boolean;
   full_name: string;
@@ -49,6 +52,7 @@ export interface Participant {
   institution: string;
   institutional_email: string;
   phone: string;
+  gala: GalaInfo | null;
 }
 
 export interface RegistrationRecord {

@@ -134,3 +134,45 @@ class EventRegistration(models.Model):
 
     def __str__(self) -> str:
         return f"{self.full_name} ({self.email})"
+
+
+class GalaTicket(models.Model):
+    """One personal QR invitation to the gala, issued to a festival
+    participant. `id` is the unguessable token carried by the QR."""
+
+    class Rsvp(models.TextChoices):
+        PENDING = "PENDING", "Pendiente"
+        CONFIRMED = "CONFIRMED", "Confirmó"
+        DECLINED = "DECLINED", "No asiste"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    participant = models.OneToOneField(
+        Participant, related_name="gala_ticket", on_delete=models.CASCADE
+    )
+    guest_name = models.CharField(max_length=200)
+    guest_email = models.EmailField(db_index=True)
+
+    rsvp_status = models.CharField(max_length=10, choices=Rsvp.choices, default=Rsvp.PENDING)
+    rsvp_updated_at = models.DateTimeField(null=True, blank=True)
+    has_plus_one = models.BooleanField(default=False)
+    plus_one_name = models.CharField(max_length=200, blank=True)
+    plus_one_email = models.EmailField(blank=True)
+
+    total_capacity = models.PositiveSmallIntegerField(default=2)
+    used_capacity = models.PositiveSmallIntegerField(default=0)
+    checkin_at = models.DateTimeField(null=True, blank=True)
+
+    expires_at = models.DateTimeField()
+    sent_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Se llena solo cuando el envío del correo tuvo éxito.",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self) -> str:
+        return f"{self.guest_name} ({self.get_rsvp_status_display()})"
+
+    @property
+    def remaining_capacity(self) -> int:
+        return max(self.total_capacity - self.used_capacity, 0)

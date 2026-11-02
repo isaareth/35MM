@@ -1,6 +1,9 @@
+import json
 import logging
 import smtplib
 import socket
+import urllib.request
+from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 from django.conf import settings
@@ -95,12 +98,7 @@ def send_registration_confirmation(registration) -> bool:
     subject, body = _build_confirmation_email(registration)
 
     try:
-        if settings.EMAIL_PROVIDER == "resend":
-            _send_via_resend(leader.institutional_email, subject, body)
-        elif settings.EMAIL_PROVIDER == "gmail":
-            _send_via_gmail(leader.institutional_email, subject, body)
-        else:
-            _send_via_console(leader.institutional_email, subject, body)
+        deliver(leader.institutional_email, subject, body)
         return True
     except Exception:
         logger.exception(
@@ -111,8 +109,49 @@ def send_registration_confirmation(registration) -> bool:
         return False
 
 
-def _send_via_console(to_email: str, subject: str, body: str) -> None:
-    logger.info("[EMAIL:console] To=%s Subject=%s\n%s", to_email, subject, body)
+def deliver(to_email: str, subject: str, text: str, html: str | None = None, extra: dict | None = None) -> None:
+    """Sends one email through the configured provider. Raises on failure.
+
+    `extra` carries provider-specific fields that only the webhook transport
+    forwards (e.g. the QR image) so an automation can attach them."""
+    provider = settings.EMAIL_PROVIDER
+    if provider == "resend":
+        _send_via_resend(to_email, subject, text, html)
+    elif provider == "gmail":
+        _send_via_gmail(to_email, subject, text, html)
+    elif provider == "webhook":
+        _send_via_webhook(to_email, subject, text, html, extra)
+    else:
+        _send_via_console(to_email, subject, text, html)
+
+
+def _send_via_console(to_email: str, subject: str, body: str, html: str | None = None) -> None:
+    logger.info("[EMAIL:console] To=%s Subject=%s Html=%s\n%s", to_email, subject, bool(html), body)
+
+
+def _send_via_webhook(to_email, subject, text, html=None, extra=None) -> None:
+    """POSTs the message as JSON to an automation (Make, n8n...) that sends it
+    from the festival's own mailbox. HTTPS only, so Railway's blocked SMTP
+    ports are not involved."""
+    if not settings.EMAIL_WEBHOOK_URL:
+        raise RuntimeError("EMAIL_WEBHOOK_URL no está configurada.")
+    payload = {
+        "to": to_email,
+        "from": settings.EMAIL_FROM_ADDRESS,
+        "subject": subject,
+        "text": text,
+        "html": html or "",
+        **(extra or {}),
+    }
+    request = urllib.request.Request(
+        settings.EMAIL_WEBHOOK_URL,
+        data=json.dumps(payload).encode("utf-8"),
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+    with urllib.request.urlopen(request, timeout=20) as response:
+        if not 200 <= response.status < 300:
+            raise RuntimeError(f"El webhook de correo respondió {response.status}.")
 
 
 class _IPv4SMTP_SSL(smtplib.SMTP_SSL):
@@ -129,11 +168,16 @@ class _IPv4SMTP_SSL(smtplib.SMTP_SSL):
         return self.context.wrap_socket(sock, server_hostname=self._host)
 
 
-def _send_via_gmail(to_email: str, subject: str, body: str) -> None:
+def _send_via_gmail(to_email: str, subject: str, body: str, html: str | None = None) -> None:
     """Sends through Gmail's SMTP server, authenticated with an App Password
     (requires 2-Step Verification enabled on the sending Gmail account —
     regular account passwords are rejected by Gmail's SMTP for this)."""
-    msg = MIMEText(body, "plain", "utf-8")
+    if html:
+        msg = MIMEMultipart("alternative")
+        msg.attach(MIMEText(body, "plain", "utf-8"))
+        msg.attach(MIMEText(html, "html", "utf-8"))
+    else:
+        msg = MIMEText(body, "plain", "utf-8")
     msg["Subject"] = subject
     msg["From"] = settings.EMAIL_FROM_ADDRESS
     msg["To"] = to_email
@@ -143,15 +187,16 @@ def _send_via_gmail(to_email: str, subject: str, body: str) -> None:
         server.sendmail(settings.EMAIL_FROM_ADDRESS, [to_email], msg.as_string())
 
 
-def _send_via_resend(to_email: str, subject: str, body: str) -> None:
+def _send_via_resend(to_email: str, subject: str, body: str, html: str | None = None) -> None:
     import resend
 
     resend.api_key = settings.RESEND_API_KEY
-    resend.Emails.send(
-        {
-            "from": settings.EMAIL_FROM_ADDRESS,
-            "to": [to_email],
-            "subject": subject,
-            "text": body,
-        }
-    )
+    message = {
+        "from": settings.EMAIL_FROM_ADDRESS,
+        "to": [to_email],
+        "subject": subject,
+        "text": body,
+    }
+    if html:
+        message["html"] = html
+    resend.Emails.send(message)
