@@ -1,5 +1,7 @@
 import json
+import threading
 import uuid
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from datetime import timedelta
 from unittest import mock
 
@@ -10,7 +12,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 
 from . import gala
-from .email import deliver
+from .email import EmailDeliveryError, deliver
 from .models import GalaTicket, Participant, Registration
 
 
@@ -101,6 +103,7 @@ class EmailTests(TestCase):
     @override_settings(EMAIL_PROVIDER="webhook", EMAIL_WEBHOOK_URL="https://hooks.example/abc")
     def test_webhook_transport_posts_json_and_fails_on_error_status(self):
         response = mock.MagicMock(status=200)
+        response.read.return_value = b"Accepted"  # Make answers with plain text
         response.__enter__.return_value = response
         with mock.patch("registrations.email.urllib.request.urlopen", return_value=response) as urlopen:
             deliver("to@x.co", "Asunto", "texto", "<p>html</p>", {"qr_url": "u"})
@@ -368,3 +371,104 @@ class EmailTestEndpointTests(TestCase):
             response = client.post("/api/admin/email/test/", {"to": "me@x.co"}, format="json")
         self.assertEqual(response.status_code, 502)
         self.assertNotIn("secret-url", response.content.decode())
+
+
+class AppsScriptWebhookTests(TestCase):
+    """Apps Script answers every POST with a 302 to a "echo" URL and always with
+    HTTP 200, so failures arrive as {"ok": false}. Exercised against a real
+    local server that behaves the same way."""
+
+    def serve(self, reply: bytes):
+        received = []
+
+        class Handler(BaseHTTPRequestHandler):
+            def do_POST(self):
+                received.append(json.loads(self.rfile.read(int(self.headers["Content-Length"]))))
+                self.send_response(302)
+                self.send_header("Location", "/echo")
+                self.end_headers()
+
+            def do_GET(self):
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(reply)
+
+            def log_message(self, *args):
+                pass
+
+        server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+        threading.Thread(target=server.serve_forever, daemon=True).start()
+        self.addCleanup(server.shutdown)
+        self.addCleanup(server.server_close)
+        return f"http://127.0.0.1:{server.server_address[1]}/exec", received
+
+    def test_success_follows_the_redirect_and_sends_the_secret(self):
+        url, received = self.serve(b'{"ok": true, "remaining": 99}')
+        with override_settings(EMAIL_PROVIDER="webhook", EMAIL_WEBHOOK_URL=url, EMAIL_WEBHOOK_SECRET="s3cret"):
+            deliver("to@x.co", "Asunto", "texto", "<p>h</p>", {"qr_url": "u"})
+        self.assertEqual(len(received), 1)
+        self.assertEqual((received[0]["secret"], received[0]["to"], received[0]["qr_url"]), ("s3cret", "to@x.co", "u"))
+
+    def test_no_secret_field_when_none_is_configured(self):
+        url, received = self.serve(b'{"ok": true}')
+        with override_settings(EMAIL_PROVIDER="webhook", EMAIL_WEBHOOK_URL=url, EMAIL_WEBHOOK_SECRET=""):
+            deliver("to@x.co", "s", "t")
+        self.assertNotIn("secret", received[0])
+
+    def test_ok_false_becomes_a_delivery_error_with_its_message_and_code(self):
+        url, _ = self.serve('{"ok": false, "code": "quota", "error": "Se agotó el límite diario."}'.encode())
+        with override_settings(EMAIL_PROVIDER="webhook", EMAIL_WEBHOOK_URL=url):
+            with self.assertRaises(EmailDeliveryError) as caught:
+                deliver("to@x.co", "s", "t")
+        self.assertEqual((str(caught.exception), caught.exception.code), ("Se agotó el límite diario.", "quota"))
+
+    def test_plain_text_replies_count_as_success(self):
+        url, _ = self.serve(b"Accepted")
+        with override_settings(EMAIL_PROVIDER="webhook", EMAIL_WEBHOOK_URL=url):
+            deliver("to@x.co", "s", "t")  # does not raise
+
+
+class QuotaHandlingTests(TestCase):
+    def setUp(self):
+        self.client = admin_client()
+        self.team = make_team()
+        self.url = f"/api/admin/registrations/{self.team.id}/gala-invitations/"
+
+    def test_a_batch_stops_at_the_daily_quota_and_leaves_the_rest_pending(self):
+        calls = {"n": 0}
+
+        def deliver_until_quota(*args, **kwargs):
+            calls["n"] += 1
+            if calls["n"] == 3:
+                raise EmailDeliveryError("Se agotó el límite diario.", "quota")
+
+        with mock.patch("registrations.gala.deliver", side_effect=deliver_until_quota):
+            data = self.client.post(self.url, {}, format="json").json()
+
+        self.assertEqual((data["sent_count"], data["failed_count"], calls["n"]), (2, 1, 3))
+        self.assertTrue(data["stopped_by_quota"])
+        self.assertEqual(data["error"], "Se agotó el límite diario.")
+        # the fourth member was never attempted, and is still sendable tomorrow
+        self.assertEqual(GalaTicket.objects.filter(sent_at__isnull=False).count(), 2)
+        with mock.patch("registrations.gala.deliver") as sender:
+            retry = self.client.post(self.url, {}, format="json").json()
+        self.assertEqual((retry["sent_count"], sender.call_count, retry["stopped_by_quota"]), (2, 2, False))
+
+    def test_other_failures_do_not_stop_the_batch(self):
+        outcomes = iter([EmailDeliveryError("rechazado"), None, None, None])
+
+        def flaky(*args, **kwargs):
+            outcome = next(outcomes)
+            if outcome:
+                raise outcome
+
+        with mock.patch("registrations.gala.deliver", side_effect=flaky):
+            data = self.client.post(self.url, {}, format="json").json()
+        self.assertEqual((data["sent_count"], data["failed_count"], data["stopped_by_quota"]), (3, 1, False))
+        self.assertEqual(data["error"], "rechazado")
+
+    def test_the_test_endpoint_shows_the_scripts_message(self):
+        with mock.patch("registrations.gala.deliver", side_effect=EmailDeliveryError("No autorizado.")):
+            response = self.client.post("/api/admin/email/test/", {"to": "me@x.co"}, format="json")
+        self.assertEqual((response.status_code, response.json()["detail"]), (502, "No autorizado."))

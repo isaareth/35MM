@@ -157,6 +157,7 @@ EMAIL_PROVIDER = env("EMAIL_PROVIDER", default="console")  # console | resend | 
 RESEND_API_KEY = env("EMAIL_API_KEY", default="")
 GMAIL_APP_PASSWORD = env("EMAIL_APP_PASSWORD", default="")
 EMAIL_WEBHOOK_URL = env("EMAIL_WEBHOOK_URL", default="")  # secret: never commit it
+EMAIL_WEBHOOK_SECRET = env("EMAIL_WEBHOOK_SECRET", default="")  # must match the script's WEBHOOK_SECRET
 EMAIL_FROM_ADDRESS = env("EMAIL_FROM_ADDRESS", default="no-reply@35mm.example.com")
 FESTIVAL_CONTACT_EMAIL = env("FESTIVAL_CONTACT_EMAIL", default="35mm@eafit.edu.co")
 SHORTFILM_FORM_URL = env("SHORTFILM_FORM_URL", default="")

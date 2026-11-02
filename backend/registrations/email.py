@@ -129,10 +129,23 @@ def _send_via_console(to_email: str, subject: str, body: str, html: str | None =
     logger.info("[EMAIL:console] To=%s Subject=%s Html=%s\n%s", to_email, subject, bool(html), body)
 
 
+class EmailDeliveryError(RuntimeError):
+    """The mail automation answered but could not send. Its message comes from
+    our own script and is safe to show to admins; `code` is "quota" when the
+    mailbox ran out of its daily sending limit."""
+
+    def __init__(self, message: str, code: str = ""):
+        super().__init__(message)
+        self.code = code
+
+
 def _send_via_webhook(to_email, subject, text, html=None, extra=None) -> None:
-    """POSTs the message as JSON to an automation (Make, n8n...) that sends it
-    from the festival's own mailbox. HTTPS only, so Railway's blocked SMTP
-    ports are not involved."""
+    """POSTs the message as JSON to an automation (a Google Apps Script, Make,
+    n8n...) that sends it from the festival's own mailbox. HTTPS only, so
+    Railway's blocked SMTP ports are not involved.
+
+    Apps Script always answers 200, so a reply of {"ok": false, "error": ...}
+    is how the automation reports a failure."""
     if not settings.EMAIL_WEBHOOK_URL:
         raise RuntimeError("EMAIL_WEBHOOK_URL no está configurada.")
     payload = {
@@ -143,6 +156,8 @@ def _send_via_webhook(to_email, subject, text, html=None, extra=None) -> None:
         "html": html or "",
         **(extra or {}),
     }
+    if settings.EMAIL_WEBHOOK_SECRET:
+        payload["secret"] = settings.EMAIL_WEBHOOK_SECRET
     request = urllib.request.Request(
         settings.EMAIL_WEBHOOK_URL,
         data=json.dumps(payload).encode("utf-8"),
@@ -152,6 +167,16 @@ def _send_via_webhook(to_email, subject, text, html=None, extra=None) -> None:
     with urllib.request.urlopen(request, timeout=20) as response:
         if not 200 <= response.status < 300:
             raise RuntimeError(f"El webhook de correo respondió {response.status}.")
+        try:
+            reply = json.loads(response.read().decode("utf-8", "replace"))
+        except ValueError:
+            reply = None  # e.g. Make answers with plain text: "Accepted"
+
+    if isinstance(reply, dict) and reply.get("ok") is False:
+        raise EmailDeliveryError(
+            str(reply.get("error") or "El servicio de correo rechazó el mensaje."),
+            str(reply.get("code") or ""),
+        )
 
 
 class _IPv4SMTP_SSL(smtplib.SMTP_SSL):

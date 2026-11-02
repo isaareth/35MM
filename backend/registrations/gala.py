@@ -5,6 +5,7 @@ import html
 import io
 import logging
 import uuid
+from dataclasses import dataclass
 
 import segno
 from django.conf import settings
@@ -13,7 +14,7 @@ from django.db.models import Count, Q, Sum
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 
-from .email import deliver
+from .email import EmailDeliveryError, deliver
 from .models import GalaTicket, Participant
 
 logger = logging.getLogger("registrations.gala")
@@ -132,7 +133,21 @@ def build_invitation_email(ticket: GalaTicket, qr_url: str):
     return subject, "\n".join(text_lines), html_body
 
 
-def send_invitation(ticket: GalaTicket, qr_url: str) -> bool:
+@dataclass(frozen=True)
+class SendOutcome:
+    """Result of one send. Truthy when the email went out; `reason` is a
+    message safe to show admins, `code` is "quota" when the mailbox hit its
+    daily limit (so a batch should stop instead of failing one by one)."""
+
+    ok: bool
+    reason: str = ""
+    code: str = ""
+
+    def __bool__(self) -> bool:
+        return self.ok
+
+
+def send_invitation(ticket: GalaTicket, qr_url: str) -> SendOutcome:
     """Emails the invitation. Marks `sent_at` only when delivery succeeded, so
     a failure can be retried without duplicating anyone else's email."""
     subject, text, body_html = build_invitation_email(ticket, qr_url)
@@ -144,12 +159,15 @@ def send_invitation(ticket: GalaTicket, qr_url: str) -> bool:
     }
     try:
         deliver(ticket.guest_email, subject, text, body_html, extra)
+    except EmailDeliveryError as error:
+        logger.warning("La invitación %s no salió: %s", ticket.id, error)
+        return SendOutcome(False, str(error), error.code)
     except Exception:
         logger.exception("No se pudo enviar la invitación %s a %s", ticket.id, ticket.guest_email)
-        return False
+        return SendOutcome(False)
     ticket.sent_at = timezone.now()
     ticket.save(update_fields=["sent_at"])
-    return True
+    return SendOutcome(True)
 
 
 def send_test_email(to_email: str) -> None:

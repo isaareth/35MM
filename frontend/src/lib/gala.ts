@@ -27,6 +27,8 @@ export interface SendGalaResult {
   sent_count: number;
   failed_count: number;
   results: { participant_id: number; name: string; sent: boolean }[];
+  error: string;
+  stopped_by_quota: boolean;
 }
 
 export interface GalaSummary {

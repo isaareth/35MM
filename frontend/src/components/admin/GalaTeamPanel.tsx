@@ -96,7 +96,13 @@ export default function GalaTeamPanel({
           {result.failed_count > 0 && (
             <p className="text-red-400 mt-1">
               No se pudo enviar a: {result.results.filter((r) => !r.sent).map((r) => r.name).join(", ")}.
-              Quedan pendientes; puedes reintentar.
+              {result.error && ` ${result.error}`} Quedan pendientes; puedes reintentar.
+            </p>
+          )}
+          {result.stopped_by_quota && (
+            <p className="text-yellow-300 mt-1">
+              Se detuvo el envío porque Gmail alcanzó su límite diario. Los integrantes que faltan siguen
+              pendientes: envíalos mañana.
             </p>
           )}
         </div>

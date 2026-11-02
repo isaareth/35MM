@@ -8,6 +8,7 @@ from rest_framework.throttling import AnonRateThrottle
 from rest_framework.views import APIView
 
 from . import gala
+from .email import EmailDeliveryError
 from .models import GalaTicket, Registration
 
 
@@ -114,20 +115,28 @@ class AdminGalaSendView(APIView):
             if not members:
                 return Response({"detail": "Ese integrante no pertenece al equipo."}, status=400)
 
-        results = []
+        results, reason, stopped = [], "", False
         for member in members:
             ticket = gala.ensure_ticket(member)
             if ticket.sent_at and not resend:
                 continue
             qr_url = request.build_absolute_uri(f"/api/gala/invitations/{ticket.id}/qr.png")
-            ok = gala.send_invitation(ticket, qr_url)
-            results.append({"participant_id": member.id, "name": member.full_name, "sent": ok})
+            outcome = gala.send_invitation(ticket, qr_url)
+            results.append({"participant_id": member.id, "name": member.full_name, "sent": outcome.ok})
+            reason = reason or outcome.reason
+            if outcome.code == "quota":
+                # The mailbox is out of sends for today: stop instead of failing
+                # every remaining member; they stay pending for tomorrow.
+                stopped = True
+                break
 
         return Response(
             {
                 "sent_count": sum(1 for r in results if r["sent"]),
                 "failed_count": sum(1 for r in results if not r["sent"]),
                 "results": results,
+                "error": reason,
+                "stopped_by_quota": stopped,
             }
         )
 
@@ -200,6 +209,8 @@ class AdminEmailTestView(APIView):
 
         try:
             gala.send_test_email(to_email)
+        except EmailDeliveryError as error:
+            return Response({"detail": str(error)}, status=502)
         except Exception:
             gala.logger.exception("Falló el correo de prueba a %s", to_email)
             return Response(
