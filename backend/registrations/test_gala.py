@@ -378,7 +378,7 @@ class AppsScriptWebhookTests(TestCase):
     HTTP 200, so failures arrive as {"ok": false}. Exercised against a real
     local server that behaves the same way."""
 
-    def serve(self, reply: bytes):
+    def serve(self, reply: bytes, content_type: str = "application/json"):
         received = []
 
         class Handler(BaseHTTPRequestHandler):
@@ -390,7 +390,7 @@ class AppsScriptWebhookTests(TestCase):
 
             def do_GET(self):
                 self.send_response(200)
-                self.send_header("Content-Type", "application/json")
+                self.send_header("Content-Type", content_type)
                 self.end_headers()
                 self.wfile.write(reply)
 
@@ -423,8 +423,15 @@ class AppsScriptWebhookTests(TestCase):
                 deliver("to@x.co", "s", "t")
         self.assertEqual((str(caught.exception), caught.exception.code), ("Se agotó el límite diario.", "quota"))
 
+    def test_a_web_page_reply_is_a_failure_not_a_silent_success(self):
+        url, _ = self.serve(b"<html><body>Sign in</body></html>", "text/html; charset=utf-8")
+        with override_settings(EMAIL_PROVIDER="webhook", EMAIL_WEBHOOK_URL=url):
+            with self.assertRaises(EmailDeliveryError) as caught:
+                deliver("to@x.co", "s", "t")
+        self.assertIn("Aplicación web", str(caught.exception))
+
     def test_plain_text_replies_count_as_success(self):
-        url, _ = self.serve(b"Accepted")
+        url, _ = self.serve(b"Accepted", "text/plain")
         with override_settings(EMAIL_PROVIDER="webhook", EMAIL_WEBHOOK_URL=url):
             deliver("to@x.co", "s", "t")  # does not raise
 

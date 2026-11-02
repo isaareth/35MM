@@ -167,10 +167,19 @@ def _send_via_webhook(to_email, subject, text, html=None, extra=None) -> None:
     with urllib.request.urlopen(request, timeout=20) as response:
         if not 200 <= response.status < 300:
             raise RuntimeError(f"El webhook de correo respondió {response.status}.")
+        content_type = response.headers.get_content_type()
         try:
             reply = json.loads(response.read().decode("utf-8", "replace"))
         except ValueError:
             reply = None  # e.g. Make answers with plain text: "Accepted"
+
+    if content_type == "text/html":
+        # Google answers 200 with a web page (sign-in, "script not found"...)
+        # when the Apps Script URL is wrong or not shared with "Anyone".
+        raise EmailDeliveryError(
+            "La URL del correo respondió con una página web y no con el script. Revisa que esté "
+            "implementada como 'Aplicación web', con acceso 'Cualquier persona', y que sea la URL /exec."
+        )
 
     if isinstance(reply, dict) and reply.get("ok") is False:
         raise EmailDeliveryError(
