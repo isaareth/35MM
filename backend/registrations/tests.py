@@ -214,3 +214,72 @@ class SubmissionEndpointTests(TestCase):
 
     def test_requires_admin(self):
         self.assertEqual(APIClient().patch(self.url, {"film_submitted": True}, format="json").status_code, 401)
+
+
+class InstitutionGroupingTests(TestCase):
+    def test_variants_of_the_same_institution_share_one_group_and_label(self):
+        from .institutions import institution_group
+
+        poli = [
+            "Politécnico Colombiano Jaime Isaza Cadavid",
+            "Politécnico Jaime Isaza Cadavid",
+            "Politecnico Jaime Isaza Cadavid",
+            "politécnico colombiano jaime isaza cadavid",
+            "POLITECNICO JAIME ISAZA CADAVID",
+            "Politécnico J.I.C",
+            "Poli jic",
+            "Politécnico Colombiano Jaime Isaías Cadavid",
+            "Jime Isaza",
+        ]
+        self.assertEqual({institution_group(v) for v in poli}, {("Politécnico Colombiano Jaime Isaza Cadavid",) * 2})
+
+        for variants, label in [
+            (["EAFIT", "Eafit", "Universidad EAFIT", "Eafit, comunicación social"], "Universidad EAFIT"),
+            (["Debora Arango", "Tecnologico de artes Débora Arango"], "Tecnológico de Artes Débora Arango"),
+            (["Universidad de Medellin", "UdeMedellin", "Udem"], "Universidad de Medellín"),
+            (["Universidad de antioquia", "Udea"], "Universidad de Antioquia"),
+            (["Upb", "Universidad pontificia bolivariana"], "Universidad Pontificia Bolivariana"),
+            (["ITM", "itm"], "ITM"),
+        ]:
+            self.assertEqual({institution_group(v) for v in variants}, {(label, label)}, variants)
+
+    def test_unknown_institutions_group_case_insensitively_without_inventing_a_label(self):
+        from .institutions import institution_group
+
+        self.assertEqual(institution_group("Colmauj")[1], None)
+        self.assertEqual(institution_group("Colmauj")[0], institution_group("  COLMAUJ ")[0])
+        self.assertEqual(institution_group("…"), ("", None))
+        self.assertEqual(institution_group(""), ("", None))
+
+    def test_dashboard_merges_the_two_politecnico_spellings(self):
+        event = Event.objects.create(slug="e", title="T")
+        make_signup(event, "1@x.co", "Politécnico Colombiano Jaime Isaza Cadavid")
+        make_signup(event, "2@x.co", "Politécnico Jaime Isaza Cadavid")
+        make_signup(event, "3@x.co", "Poli JIC")
+        institutions = build_analytics()["events"]["institutions"]
+        self.assertEqual(institutions, [{"name": "Politécnico Colombiano Jaime Isaza Cadavid", "count": 3}])
+
+    def test_normalize_command_dry_run_then_apply(self):
+        from io import StringIO
+
+        from django.core.management import call_command
+
+        team = make_team(["a@x.co", "b@x.co", "c@x.co", "d@x.co"], institution="Politecnico Jaime  Isaza Cadavid")
+        make_signup(Event.objects.create(slug="e", title="T"), "z@x.co", "Colmauj  ")
+
+        call_command("normalize_institutions", stdout=StringIO())
+        self.assertEqual(
+            Participant.objects.filter(registration=team).first().institution, "Politecnico Jaime  Isaza Cadavid"
+        )
+
+        import os
+        import tempfile
+        from unittest import mock
+
+        with tempfile.TemporaryDirectory() as home, mock.patch.dict(
+            os.environ, {"USERPROFILE": home, "HOME": home}
+        ):
+            call_command("normalize_institutions", "--apply", stdout=StringIO())
+        institutions = set(Participant.objects.values_list("institution", flat=True))
+        self.assertEqual(institutions, {"Politécnico Colombiano Jaime Isaza Cadavid"})
+        self.assertEqual(EventRegistration.objects.get().institution, "Colmauj")

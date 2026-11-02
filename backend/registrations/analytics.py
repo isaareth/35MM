@@ -5,12 +5,12 @@ set is a few hundred rows, so clarity beats pushing group-bys into SQL.
 No personal data leaves this module — only counts.
 """
 
-import unicodedata
 from collections import Counter
 from datetime import timedelta
 
 from django.utils import timezone
 
+from .institutions import institution_group
 from .models import Event, EventRegistration, Participant, Registration
 
 TOP_N = 8
@@ -42,28 +42,16 @@ def _hourly(datetimes):
     return hours
 
 
-_FILLER_WORDS = {"universidad", "de", "del", "la", "las", "los", "el"}
-
-
-def _normalize(text):
-    """Grouping key for free-text institution names: ignores case, accents,
-    spacing and filler words, so "EAFIT" and "Universidad EAFIT" match."""
-    stripped = unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode()
-    words = stripped.lower().split()
-    meaningful = [w for w in words if w not in _FILLER_WORDS]
-    return " ".join(meaningful or words)
-
-
 def _top_labels(values, blank_label, n=TOP_N):
-    """Group free-text values (case/accent/spacing-insensitive), label each
-    group with its most common spelling, keep the top n and fold the rest
-    into "Otras"."""
+    """Group institution answers (see institutions.py), label each group
+    with its canonical name or most common spelling, keep the top n and
+    fold the rest into "Otras"."""
     groups, spellings = Counter(), {}
     for raw in values:
         text = " ".join((raw or "").split())
-        key = _normalize(text) if text else ""
+        key, label = institution_group(text)
         groups[key] += 1
-        spellings.setdefault(key, Counter())[text or blank_label] += 1
+        spellings.setdefault(key, Counter())[label or text or blank_label] += 1
 
     ranked = groups.most_common()
     result = [
@@ -129,9 +117,9 @@ def _submission_rates_by_institution(teams, n=TOP_N):
     groups, spellings = {}, {}
     for team in teams:
         text = " ".join((team["institution"] or "").split())
-        key = _normalize(text) if text else ""
+        key, label = institution_group(text)
         groups.setdefault(key, []).append(team)
-        spellings.setdefault(key, Counter())[text or "Sin institución"] += 1
+        spellings.setdefault(key, Counter())[label or text or "Sin institución"] += 1
 
     ranked = sorted(groups.items(), key=lambda item: -len(item[1]))
     rows = [_rate_row(spellings[key].most_common(1)[0][0], group) for key, group in ranked[:n]]
