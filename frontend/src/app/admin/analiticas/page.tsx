@@ -3,7 +3,17 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import AdminHeader from "@/components/AdminHeader";
-import { Card, Columns, DailyChart, Empty, HBars, HourColumns, Kpi, Section } from "@/components/admin/charts";
+import {
+  Card,
+  Columns,
+  DailyChart,
+  Empty,
+  HBars,
+  HourColumns,
+  Kpi,
+  RateBars,
+  Section,
+} from "@/components/admin/charts";
 import { adminFetch, getToken } from "@/lib/adminApi";
 import { percent, shortDate, type AnalyticsData, type EventAnalytics } from "@/lib/analytics";
 
@@ -63,6 +73,7 @@ export default function AdminAnalyticsPage() {
   }
 
   const { overview, festival, events } = data;
+  const submissions = festival.submissions;
   const overlapPct = percent(overview.in_both, overview.festival_people);
 
   return (
@@ -148,6 +159,75 @@ export default function AdminAnalyticsPage() {
             <Card title="Dominio del correo" caption="Participantes por dominio de correo institucional">
               <HBars items={festival.email_domains} />
             </Card>
+          </div>
+        </Section>
+
+        <Section title="Entrega de cortometrajes">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-white/10 mb-6">
+            <Kpi
+              label="Cortos entregados"
+              value={`${submissions.submitted_teams} / ${submissions.unique_teams}`}
+              hint="Equipos únicos"
+            />
+            <Kpi label="Tasa de entrega" value={`${submissions.rate}%`} hint="Del total de equipos" />
+            <Kpi
+              label="Participantes con corto"
+              value={submissions.participants_in_submitting_teams}
+              hint={`De ${festival.participants} inscritos`}
+            />
+            <Kpi
+              label="Inscripciones repetidas"
+              value={submissions.duplicate_registrations}
+              hint="Mismo líder; cuentan como un equipo"
+            />
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card title="Entrega por institución" caption="Institución del líder del equipo">
+              <RateBars rows={submissions.by_institution} />
+            </Card>
+            <Card title="Entrega por tamaño del equipo">
+              <RateBars rows={submissions.by_team_size} />
+            </Card>
+            <Card
+              title="Entrega según cuándo se inscribieron"
+              caption="Equipos agrupados por la semana de su primera inscripción"
+            >
+              <RateBars
+                rows={submissions.by_signup_week.map((w) => ({
+                  ...w,
+                  name: `Semana del ${shortDate(w.week_start)}`,
+                }))}
+              />
+            </Card>
+            <Card
+              title="Entrega e inscripción a charlas"
+              caption="Equipos con al menos un integrante inscrito a una charla o taller"
+            >
+              <RateBars
+                rows={[
+                  submissions.talk_engagement.with_talks,
+                  submissions.talk_engagement.without_talks,
+                ]}
+              />
+            </Card>
+            <div className="lg:col-span-2">
+              <Card title="Cortos recibidos" caption="Título según el correo de entrega">
+                {submissions.films.length === 0 ? (
+                  <Empty>Todavía no hay cortos marcados como entregados.</Empty>
+                ) : (
+                  <ul className="grid grid-cols-1 md:grid-cols-2 gap-x-8 divide-y md:divide-y-0 divide-white/8">
+                    {submissions.films.map((film) => (
+                      <li key={film.title} className="py-2 flex justify-between gap-4">
+                        <span className="font-body text-white text-sm truncate">{film.title}</span>
+                        <span className="font-body text-white/40 text-xs flex-shrink-0 truncate max-w-[50%]">
+                          {film.institution || "—"} · {film.size} int.
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </Card>
+            </div>
           </div>
         </Section>
 

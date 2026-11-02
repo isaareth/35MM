@@ -9,6 +9,26 @@ export interface NamedCount {
   count: number;
 }
 
+export interface RateRow {
+  name: string;
+  teams: number;
+  submitted: number;
+  rate: number;
+}
+
+export interface SubmissionsAnalytics {
+  unique_teams: number;
+  duplicate_registrations: number;
+  submitted_teams: number;
+  rate: number;
+  participants_in_submitting_teams: number;
+  by_institution: RateRow[];
+  by_team_size: (RateRow & { size: number })[];
+  by_signup_week: (RateRow & { week_start: string })[];
+  talk_engagement: { with_talks: RateRow; without_talks: RateRow };
+  films: { title: string; institution: string; size: number }[];
+}
+
 export interface FestivalAnalytics {
   teams: number;
   participants: number;
@@ -20,6 +40,7 @@ export interface FestivalAnalytics {
   hourly: number[];
   institutions: NamedCount[];
   email_domains: NamedCount[];
+  submissions: SubmissionsAnalytics;
 }
 
 export interface EventAnalytics {

@@ -110,6 +110,28 @@ class AdminRegistrationDeleteView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+class AdminRegistrationSubmissionView(APIView):
+    """PATCH /api/admin/registrations/<uuid>/submission/ with
+    {"film_submitted": bool, "film_title": str} — records whether a team has
+    delivered its short film. Unmarking also clears the title."""
+
+    permission_classes = [IsAdminUser]
+
+    def patch(self, request, pk):
+        registration = get_object_or_404(Registration, pk=pk)
+        submitted = request.data.get("film_submitted")
+        title = request.data.get("film_title", registration.film_title)
+        if not isinstance(submitted, bool):
+            return Response({"detail": "film_submitted must be true or false."}, status=400)
+        if not isinstance(title, str) or len(title) > 200:
+            return Response({"detail": "film_title must be text of at most 200 characters."}, status=400)
+
+        registration.film_submitted = submitted
+        registration.film_title = title.strip() if submitted else ""
+        registration.save(update_fields=["film_submitted", "film_title"])
+        return Response(RegistrationReadSerializer(registration).data)
+
+
 class AdminRegistrationBulkDeleteView(APIView):
     """POST /api/admin/registrations/bulk-delete/ — deletes several
     registrations at once (e.g. clearing out test entries), same

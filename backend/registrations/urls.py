@@ -11,6 +11,7 @@ from .views import (
     AdminRegistrationDeleteView,
     AdminRegistrationExportView,
     AdminRegistrationListView,
+    AdminRegistrationSubmissionView,
     AdminSendConfirmationsView,
     EventDetailView,
     EventListView,
@@ -42,6 +43,11 @@ urlpatterns = [
         "admin/registrations/send-confirmations/",
         AdminSendConfirmationsView.as_view(),
         name="admin-registration-send-confirmations",
+    ),
+    path(
+        "admin/registrations/<uuid:pk>/submission/",
+        AdminRegistrationSubmissionView.as_view(),
+        name="admin-registration-submission",
     ),
     path(
         "admin/registrations/<uuid:pk>/",

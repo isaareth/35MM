@@ -84,7 +84,109 @@ def _top_counter(counter, n=TOP_N):
     return result
 
 
-def _festival():
+def _percent(part, whole):
+    return round(100 * part / whole) if whole else 0
+
+
+def _teams():
+    """One entry per team. Registrations sharing a leader email are
+    duplicates of the same team, so they are counted once; the team counts
+    as submitted if any of its registrations was marked."""
+    groups = {}
+    queryset = Registration.objects.prefetch_related("participants").order_by("created_at")
+    for registration in queryset:
+        participants = list(registration.participants.all())
+        leader = next((p for p in participants if p.is_leader), None)
+        key = leader.institutional_email.strip().lower() if leader else f"registration:{registration.id}"
+        groups.setdefault(key, []).append((registration, participants, leader))
+
+    teams = []
+    for entries in groups.values():
+        submitted = [e for e in entries if e[0].film_submitted]
+        registration, participants, leader = (submitted or entries)[-1]
+        teams.append(
+            {
+                "first_created": entries[0][0].created_at,
+                "registrations": len(entries),
+                "submitted": bool(submitted),
+                "film_title": registration.film_title if submitted else "",
+                "size": len(participants),
+                "institution": leader.institution if leader else "",
+                "emails": {
+                    p.institutional_email.strip().lower() for _, parts, _ in entries for p in parts
+                },
+            }
+        )
+    return teams
+
+
+def _rate_row(name, teams):
+    submitted = sum(1 for t in teams if t["submitted"])
+    return {"name": name, "teams": len(teams), "submitted": submitted, "rate": _percent(submitted, len(teams))}
+
+
+def _submission_rates_by_institution(teams, n=TOP_N):
+    groups, spellings = {}, {}
+    for team in teams:
+        text = " ".join((team["institution"] or "").split())
+        key = _normalize(text) if text else ""
+        groups.setdefault(key, []).append(team)
+        spellings.setdefault(key, Counter())[text or "Sin institución"] += 1
+
+    ranked = sorted(groups.items(), key=lambda item: -len(item[1]))
+    rows = [_rate_row(spellings[key].most_common(1)[0][0], group) for key, group in ranked[:n]]
+    rest = [t for _, group in ranked[n:] for t in group]
+    if rest:
+        rows.append(_rate_row("Otras", rest))
+    return rows
+
+
+def _submissions(talk_emails):
+    teams = _teams()
+    submitted = [t for t in teams if t["submitted"]]
+
+    by_size = {}
+    for team in teams:
+        by_size.setdefault(team["size"], []).append(team)
+
+    by_week = {}
+    for team in teams:
+        day = _local(team["first_created"]).date()
+        by_week.setdefault(day - timedelta(days=day.weekday()), []).append(team)
+
+    with_talks = [t for t in teams if t["emails"] & talk_emails]
+    without_talks = [t for t in teams if not t["emails"] & talk_emails]
+
+    return {
+        "unique_teams": len(teams),
+        "duplicate_registrations": sum(t["registrations"] - 1 for t in teams),
+        "submitted_teams": len(submitted),
+        "rate": _percent(len(submitted), len(teams)),
+        "participants_in_submitting_teams": sum(t["size"] for t in submitted),
+        "by_institution": _submission_rates_by_institution(teams),
+        "by_team_size": [
+            {**_rate_row(f"{size} integrantes", group), "size": size}
+            for size, group in sorted(by_size.items())
+        ],
+        "by_signup_week": [
+            {**_rate_row("", group), "week_start": week.isoformat()}
+            for week, group in sorted(by_week.items())
+        ],
+        "talk_engagement": {
+            "with_talks": _rate_row("Con integrantes en charlas", with_talks),
+            "without_talks": _rate_row("Sin integrantes en charlas", without_talks),
+        },
+        "films": sorted(
+            (
+                {"title": t["film_title"] or "(sin título)", "institution": t["institution"], "size": t["size"]}
+                for t in submitted
+            ),
+            key=lambda f: f["title"].lower(),
+        ),
+    }
+
+
+def _festival(talk_emails):
     registrations = list(Registration.objects.all())
     participants = list(Participant.objects.all())
 
@@ -109,6 +211,7 @@ def _festival():
         "hourly": _hourly(created),
         "institutions": _top_labels((p.institution for p in participants), "Sin institución"),
         "email_domains": _top_counter(domains),
+        "submissions": _submissions(talk_emails),
     }
 
 
@@ -167,13 +270,13 @@ def _events(today):
 
 def build_analytics():
     today = timezone.localdate()
-    festival = _festival()
+    event_emails = {e.strip().lower() for e in EventRegistration.objects.values_list("email", flat=True)}
+    festival = _festival(event_emails)
     events = _events(today)
 
     festival_emails = {
         e.strip().lower() for e in Participant.objects.values_list("institutional_email", flat=True)
     }
-    event_emails = {e.strip().lower() for e in EventRegistration.objects.values_list("email", flat=True)}
 
     return {
         "generated_at": timezone.now().isoformat(),

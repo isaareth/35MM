@@ -10,11 +10,13 @@ from .analytics import build_analytics
 from .models import Event, EventRegistration, Participant, Registration
 
 
-def make_team(emails, institution="EAFIT", sent=False):
+def make_team(emails, institution="EAFIT", sent=False, film=""):
     registration = Registration.objects.create(
         accepted_terms=True,
         confirmed_eligibility=True,
         confirmation_email_sent_at=timezone.now() if sent else None,
+        film_submitted=bool(film),
+        film_title=film,
     )
     for i, email in enumerate(emails, start=1):
         Participant.objects.create(
@@ -142,3 +144,73 @@ class AnalyticsEndpointTests(TestCase):
         body = response.content.decode()
         for email in ("a@x.co", "b@x.co", "c@x.co", "d@x.co"):
             self.assertNotIn(email, body)
+
+
+class SubmissionMetricsTests(TestCase):
+    def test_duplicate_registrations_of_one_team_count_once(self):
+        make_team(["lead@x.co", "b@x.co", "c@x.co", "d@x.co"], film="Corto A")
+        make_team(["lead@x.co", "b@x.co", "c@x.co", "d@x.co"])  # same leader, re-registered
+        make_team(["other@x.co", "e@x.co", "f@x.co", "g@x.co"])
+
+        subs = build_analytics()["festival"]["submissions"]
+        self.assertEqual(subs["unique_teams"], 2)
+        self.assertEqual(subs["duplicate_registrations"], 1)
+        self.assertEqual(subs["submitted_teams"], 1)
+        self.assertEqual(subs["rate"], 50)
+        self.assertEqual(subs["participants_in_submitting_teams"], 4)
+        self.assertEqual([f["title"] for f in subs["films"]], ["Corto A"])
+
+    def test_rates_by_institution_and_size(self):
+        make_team(["a1@x.co", "a2@x.co", "a3@x.co", "a4@x.co"], institution="EAFIT", film="A")
+        make_team(["b1@x.co", "b2@x.co", "b3@x.co", "b4@x.co", "b5@x.co"], institution="Universidad EAFIT")
+        make_team(["c1@x.co", "c2@x.co", "c3@x.co", "c4@x.co"], institution="ITM")
+
+        subs = build_analytics()["festival"]["submissions"]
+        institutions = {i["name"]: (i["teams"], i["submitted"]) for i in subs["by_institution"]}
+        self.assertEqual(sorted(institutions.values()), [(1, 0), (2, 1)])
+        sizes = {s["size"]: (s["teams"], s["submitted"]) for s in subs["by_team_size"]}
+        self.assertEqual(sizes, {4: (2, 1), 5: (1, 0)})
+
+    def test_talk_engagement_compares_teams_with_and_without_members_at_talks(self):
+        make_team(["a1@x.co", "a2@x.co", "a3@x.co", "a4@x.co"], film="A")
+        make_team(["b1@x.co", "b2@x.co", "b3@x.co", "b4@x.co"])
+        make_signup(Event.objects.create(slug="t", title="T"), "A2@x.co")
+
+        engagement = build_analytics()["festival"]["submissions"]["talk_engagement"]
+        self.assertEqual((engagement["with_talks"]["teams"], engagement["with_talks"]["submitted"]), (1, 1))
+        self.assertEqual((engagement["without_talks"]["teams"], engagement["without_talks"]["submitted"]), (1, 0))
+
+    def test_empty_database(self):
+        subs = build_analytics()["festival"]["submissions"]
+        self.assertEqual((subs["unique_teams"], subs["rate"], subs["films"]), (0, 0, []))
+
+
+class SubmissionEndpointTests(TestCase):
+    def setUp(self):
+        self.team = make_team(["a@x.co", "b@x.co", "c@x.co", "d@x.co"])
+        admin = get_user_model().objects.create_superuser("adm", "adm@x.co", "x")
+        self.client = APIClient()
+        self.client.credentials(HTTP_AUTHORIZATION=f"Token {Token.objects.create(user=admin).key}")
+        self.url = f"/api/admin/registrations/{self.team.id}/submission/"
+
+    def test_mark_and_unmark(self):
+        response = self.client.patch(self.url, {"film_submitted": True, "film_title": "  Mi corto "}, format="json")
+        self.assertEqual(response.status_code, 200)
+        self.team.refresh_from_db()
+        self.assertTrue(self.team.film_submitted)
+        self.assertEqual(self.team.film_title, "Mi corto")
+
+        self.client.patch(self.url, {"film_submitted": False}, format="json")
+        self.team.refresh_from_db()
+        self.assertFalse(self.team.film_submitted)
+        self.assertEqual(self.team.film_title, "")
+
+    def test_rejects_bad_input(self):
+        self.assertEqual(self.client.patch(self.url, {"film_submitted": "si"}, format="json").status_code, 400)
+        self.assertEqual(
+            self.client.patch(self.url, {"film_submitted": True, "film_title": "x" * 201}, format="json").status_code,
+            400,
+        )
+
+    def test_requires_admin(self):
+        self.assertEqual(APIClient().patch(self.url, {"film_submitted": True}, format="json").status_code, 401)

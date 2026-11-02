@@ -57,6 +57,8 @@ export interface RegistrationRecord {
   confirmed_eligibility: boolean;
   created_at: string;
   confirmation_email_sent_at: string | null;
+  film_submitted: boolean;
+  film_title: string;
   participants: Participant[];
 }
 
@@ -73,4 +75,19 @@ export interface SendConfirmationsResult {
 
 export function leaderOf(registration: RegistrationRecord): Participant | undefined {
   return registration.participants.find((p) => p.is_leader);
+}
+
+/** Registrations that share a leader email are duplicates of one team. */
+export function teamKey(registration: RegistrationRecord): string {
+  const leader = leaderOf(registration);
+  return leader ? leader.institutional_email.trim().toLowerCase() : registration.id;
+}
+
+export function filmStats(registrations: RegistrationRecord[]): { teams: number; submitted: number } {
+  const teams = new Map<string, boolean>();
+  for (const r of registrations) {
+    const key = teamKey(r);
+    teams.set(key, (teams.get(key) ?? false) || r.film_submitted);
+  }
+  return { teams: teams.size, submitted: [...teams.values()].filter(Boolean).length };
 }

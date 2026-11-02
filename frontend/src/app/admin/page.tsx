@@ -7,6 +7,7 @@ import {
   clearSession,
   getToken,
   getUsername,
+  filmStats,
   leaderOf,
   type DashboardData,
   type RegistrationRecord,
@@ -21,6 +22,7 @@ export default function AdminDashboardPage() {
   const [dashboard, setDashboard] = useState<DashboardData | null>(null);
   const [registrations, setRegistrations] = useState<RegistrationRecord[]>([]);
   const [search, setSearch] = useState("");
+  const [filmFilter, setFilmFilter] = useState<"all" | "submitted" | "pending">("all");
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
   const [selected, setSelected] = useState<RegistrationRecord | null>(null);
@@ -124,7 +126,11 @@ export default function AdminDashboardPage() {
     }
   };
 
+  const films = filmStats(registrations);
+
   const filtered = registrations.filter((r) => {
+    if (filmFilter === "submitted" && !r.film_submitted) return false;
+    if (filmFilter === "pending" && r.film_submitted) return false;
     if (!search.trim()) return true;
     const q = search.trim().toLowerCase();
     return r.participants.some(
@@ -194,7 +200,7 @@ export default function AdminDashboardPage() {
 
       <main className="px-6 md:px-12 py-10 max-w-screen-xl mx-auto">
         {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-px bg-white/10 mb-10">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-white/10 mb-10">
           <div className="bg-ink p-6 md:p-8">
             <p className="font-display font-black text-neon text-4xl md:text-5xl leading-none mb-2">
               {dashboard?.total_teams ?? 0}
@@ -206,6 +212,13 @@ export default function AdminDashboardPage() {
               {dashboard?.total_participants ?? 0}
             </p>
             <p className="font-body text-white/40 text-xs tracking-widest uppercase">Participantes</p>
+          </div>
+          <div className="bg-ink p-6 md:p-8">
+            <p className="font-display font-black text-neon text-4xl md:text-5xl leading-none mb-2">
+              {films.submitted}
+              <span className="text-white/30 text-2xl md:text-3xl"> / {films.teams}</span>
+            </p>
+            <p className="font-body text-white/40 text-xs tracking-widest uppercase">Cortos entregados</p>
           </div>
           <div className="bg-purple p-6 md:p-8 flex flex-col justify-between col-span-2 md:col-span-1">
             <div>
@@ -325,11 +338,33 @@ export default function AdminDashboardPage() {
             />
           </div>
 
+          <div className="flex gap-2 flex-wrap mb-4">
+            {(
+              [
+                ["all", "Todos"],
+                ["submitted", "Entregaron el corto"],
+                ["pending", "Sin entregar"],
+              ] as const
+            ).map(([key, label]) => (
+              <button
+                key={key}
+                onClick={() => setFilmFilter(key)}
+                className={`font-body text-xs tracking-widest uppercase px-4 py-2 border transition-colors ${
+                  filmFilter === key
+                    ? "border-neon text-neon"
+                    : "border-white/20 text-white/50 hover:text-white"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse min-w-[700px]">
               <thead>
                 <tr className="border-b border-white/20">
-                  {["Fecha", "Líder", "Correo institucional", "Institución", "Integrantes", ""].map((h) => (
+                  {["Fecha", "Líder", "Correo institucional", "Institución", "Integrantes", "Corto", ""].map((h) => (
                     <th
                       key={h}
                       className="font-body text-xs text-white/40 tracking-widest uppercase py-3 pr-4"
@@ -357,6 +392,13 @@ export default function AdminDashboardPage() {
                       </td>
                       <td className="font-body text-white/60 text-sm py-3 pr-4">{leader?.institution}</td>
                       <td className="font-body text-white/60 text-sm py-3 pr-4">{r.participants.length}</td>
+                      <td className="font-body text-sm py-3 pr-4">
+                        {r.film_submitted ? (
+                          <span className="text-neon">✓ {r.film_title || "Entregado"}</span>
+                        ) : (
+                          <span className="text-white/25">—</span>
+                        )}
+                      </td>
                       <td className="text-right pr-2">
                         <span className="font-body text-xs text-neon">Ver →</span>
                       </td>
@@ -376,6 +418,10 @@ export default function AdminDashboardPage() {
         <RegistrationModal
           registration={selected}
           onClose={() => setSelected(null)}
+          onSubmissionSaved={(updated) => {
+            setSelected(updated);
+            refreshQuietly();
+          }}
           onDeleted={() => {
             setSelected(null);
             load();
@@ -390,12 +436,39 @@ function RegistrationModal({
   registration,
   onClose,
   onDeleted,
+  onSubmissionSaved,
 }: {
   registration: RegistrationRecord;
   onClose: () => void;
   onDeleted: () => void;
+  onSubmissionSaved: (updated: RegistrationRecord) => void;
 }) {
   const leader = leaderOf(registration);
+  const [filmSubmitted, setFilmSubmitted] = useState(registration.film_submitted);
+  const [filmTitle, setFilmTitle] = useState(registration.film_title);
+  const [savingFilm, setSavingFilm] = useState(false);
+  const [filmError, setFilmError] = useState<string | null>(null);
+  const filmChanged =
+    filmSubmitted !== registration.film_submitted ||
+    (filmSubmitted && filmTitle.trim() !== registration.film_title);
+
+  const handleSaveFilm = async () => {
+    setSavingFilm(true);
+    setFilmError(null);
+    try {
+      const res = await adminFetch(`/api/admin/registrations/${registration.id}/submission/`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ film_submitted: filmSubmitted, film_title: filmTitle }),
+      });
+      if (!res.ok) throw new Error("save failed");
+      onSubmissionSaved(await res.json());
+    } catch {
+      setFilmError("No pudimos guardar la entrega. Intenta de nuevo.");
+    } finally {
+      setSavingFilm(false);
+    }
+  };
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
@@ -454,6 +527,42 @@ function RegistrationModal({
               ok={Boolean(registration.confirmation_email_sent_at)}
               label="Correo de confirmación enviado"
             />
+          </div>
+
+          <div className="border border-white/10 p-5 flex flex-col gap-4">
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={filmSubmitted}
+                onChange={(e) => setFilmSubmitted(e.target.checked)}
+                className="accent-purple w-4 h-4"
+              />
+              <span className="font-body text-sm text-white">El equipo entregó su cortometraje</span>
+            </label>
+            {filmSubmitted && (
+              <label className="flex flex-col gap-2">
+                <span className="font-body text-xs text-white/40 tracking-widest uppercase">
+                  Título del corto
+                </span>
+                <input
+                  type="text"
+                  value={filmTitle}
+                  maxLength={200}
+                  onChange={(e) => setFilmTitle(e.target.value)}
+                  className="bg-transparent border-b border-white/20 font-body text-white text-sm py-2 outline-none focus:border-neon transition-colors"
+                />
+              </label>
+            )}
+            {filmError && <p className="font-body text-xs text-red-400">{filmError}</p>}
+            {filmChanged && (
+              <button
+                onClick={handleSaveFilm}
+                disabled={savingFilm}
+                className="self-start font-body text-xs font-semibold tracking-widest uppercase px-5 py-2.5 bg-neon text-ink hover:bg-white transition-colors disabled:opacity-50"
+              >
+                {savingFilm ? "Guardando…" : "Guardar"}
+              </button>
+            )}
           </div>
 
           <div className="flex flex-col gap-4">

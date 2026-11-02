@@ -26,6 +26,12 @@ class Registration(models.Model):
         "de educación superior en el Valle de Aburrá."
     )
     created_at = models.DateTimeField(auto_now_add=True)
+    film_submitted = models.BooleanField(
+        "Entregó el cortometraje",
+        default=False,
+        help_text="Lo marca un administrador al confirmar que el equipo envió su corto.",
+    )
+    film_title = models.CharField("Título del corto", max_length=200, blank=True)
     confirmation_email_sent_at = models.DateTimeField(
         null=True,
         blank=True,

@@ -7,7 +7,7 @@ from openpyxl.utils import get_column_letter
 
 from .models import MAX_PARTICIPANTS
 
-HEADERS = ["Fecha de inscripción", "Total integrantes"]
+HEADERS = ["Fecha de inscripción", "Total integrantes", "Corto entregado", "Título del corto"]
 for i in range(1, MAX_PARTICIPANTS + 1):
     HEADERS += [
         f"P{i} - Nombre" + (" (líder)" if i == 1 else ""),
@@ -32,6 +32,8 @@ def build_registrations_workbook(registrations) -> Workbook:
         row = [
             registration.created_at.strftime("%Y-%m-%d %H:%M"),
             len(participants_by_position),
+            "Sí" if registration.film_submitted else "No",
+            registration.film_title,
         ]
         for i in range(1, MAX_PARTICIPANTS + 1):
             p = participants_by_position.get(i)

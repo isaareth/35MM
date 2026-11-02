@@ -1,7 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { hourLabel, shortDate, type DailyPoint, type NamedCount } from "@/lib/analytics";
+import {
+  hourLabel,
+  shortDate,
+  type DailyPoint,
+  type NamedCount,
+  type RateRow,
+} from "@/lib/analytics";
 
 export function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -71,6 +77,28 @@ export function HBars({ items, unit = "" }: { items: NamedCount[]; unit?: string
           </div>
           <div className="h-1.5 bg-white/10">
             <div className="h-full bg-neon" style={{ width: `${(100 * item.count) / max}%` }} />
+          </div>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/** One row per group: "x de y" plus a bar filled to the percentage that delivered. */
+export function RateBars({ rows }: { rows: RateRow[] }) {
+  if (rows.length === 0) return <Empty />;
+  return (
+    <ul className="flex flex-col gap-3">
+      {rows.map((row) => (
+        <li key={row.name}>
+          <div className="flex justify-between gap-4 font-body text-sm mb-1">
+            <span className="text-white/80 truncate">{row.name}</span>
+            <span className="text-white tabular-nums flex-shrink-0">
+              {row.submitted} de {row.teams} · <span className="text-neon">{row.rate}%</span>
+            </span>
+          </div>
+          <div className="h-1.5 bg-white/10">
+            <div className="h-full bg-neon" style={{ width: `${row.rate}%` }} />
           </div>
         </li>
       ))}

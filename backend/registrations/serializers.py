@@ -108,6 +108,8 @@ class RegistrationReadSerializer(serializers.ModelSerializer):
             "confirmed_eligibility",
             "created_at",
             "confirmation_email_sent_at",
+            "film_submitted",
+            "film_title",
             "participants",
         ]
 
