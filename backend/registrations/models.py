@@ -157,6 +157,7 @@ class GalaTicket(models.Model):
     has_plus_one = models.BooleanField(default=False)
     plus_one_name = models.CharField(max_length=200, blank=True)
     plus_one_email = models.EmailField(blank=True)
+    plus_one_phone = models.CharField(max_length=30, blank=True)
 
     total_capacity = models.PositiveSmallIntegerField(default=2)
     used_capacity = models.PositiveSmallIntegerField(default=0)

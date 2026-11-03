@@ -24,8 +24,8 @@ def _guest_view(ticket: GalaTicket) -> dict:
         "has_plus_one": ticket.has_plus_one,
         "plus_one_name": ticket.plus_one_name,
         "plus_one_email": ticket.plus_one_email,
+        "plus_one_phone": ticket.plus_one_phone,
         "total_capacity": ticket.total_capacity,
-        "expires_at": ticket.expires_at,
         "expired": gala.is_expired(ticket),
         "qr_path": f"/api/gala/invitations/{ticket.id}/qr.png",
     }
@@ -63,6 +63,7 @@ class GalaInvitationRsvpView(APIView):
                 request.data.get("has_plus_one"),
                 request.data.get("plus_one_name"),
                 request.data.get("plus_one_email"),
+                request.data.get("plus_one_phone"),
             )
         except gala.GalaError as error:
             return _error(error)

@@ -229,6 +229,7 @@ export default function AdminGalaPage() {
                   <span className="text-white/40 text-xs truncate">
                     invitado por {p.guest_name}
                     {p.plus_one_email && ` · ${p.plus_one_email}`}
+                    {p.plus_one_phone && ` · ${p.plus_one_phone}`}
                   </span>
                 </li>
               ))}

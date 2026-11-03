@@ -9,6 +9,8 @@ from dataclasses import dataclass
 
 import segno
 from django.conf import settings
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
 from django.db import transaction
 from django.db.models import Count, Q, Sum
 from django.utils import timezone
@@ -77,7 +79,6 @@ def qr_png(ticket: GalaTicket) -> bytes:
 def build_invitation_email(ticket: GalaTicket, qr_url: str):
     name = ticket.guest_name
     link = invitation_url(ticket)
-    until = timezone.localtime(ticket.expires_at).strftime("%d/%m/%Y")
     when = [("Fecha", settings.GALA_DATE_LABEL), ("Lugar", settings.GALA_PLACE)]
     if settings.GALA_TIME:
         when.insert(1, ("Hora", settings.GALA_TIME))
@@ -97,7 +98,7 @@ def build_invitation_email(ticket: GalaTicket, qr_url: str):
         "Confirma tu asistencia (y si vendrás con acompañante) en este enlace, donde también "
         f"puedes ver tu código QR:\n{link}",
         "",
-        f"La invitación es válida hasta el {until}. Es personal: no la compartas.",
+        "Es personal: no la compartas.",
         "",
         "Equipo 35mm – Producciones TVU",
     ]
@@ -125,7 +126,7 @@ def build_invitation_email(ticket: GalaTicket, qr_url: str):
 </div>
 <p style="margin:0 0 24px;text-align:center;font-size:13px;color:#666">Preséntalo en la puerta, desde el celular o impreso.<br>Sirve para ingresar tú y, si quieres, un acompañante.</p>
 <p style="text-align:center;margin:0 0 24px"><a href="{html.escape(link)}" style="display:inline-block;background:#4820B7;color:#ffffff;text-decoration:none;font-weight:700;font-size:14px;padding:14px 28px">Confirmar asistencia</a></p>
-<p style="margin:0;font-size:12px;line-height:1.5;color:#8a8a8a">Válida hasta el {until}. Es personal: no la compartas. Si el código no se ve, abre el botón de arriba para verlo en línea.</p>
+<p style="margin:0;font-size:12px;line-height:1.5;color:#8a8a8a">Es personal: no la compartas. Si el código no se ve, abre el botón de arriba para verlo en línea.</p>
 </td></tr>
 <tr><td style="padding:16px 24px;background:#f3f1fa;font-size:12px;color:#8a8a8a">Equipo 35mm – Producciones TVU</td></tr>
 </table></td></tr></table></body></html>"""
@@ -203,30 +204,50 @@ def send_test_email(to_email: str) -> None:
 
 # ---------------------------------------------------------------------- RSVP
 
-def apply_rsvp(ticket: GalaTicket, attending, has_plus_one, plus_one_name, plus_one_email) -> GalaTicket:
+def _valid_phone(value: str) -> bool:
+    digits = [c for c in value if c.isdigit()]
+    return all(c.isdigit() or c in " +-()" for c in value) and 7 <= len(digits) <= 15
+
+
+def apply_rsvp(
+    ticket: GalaTicket, attending, has_plus_one, plus_one_name, plus_one_email, plus_one_phone
+) -> GalaTicket:
     if is_expired(ticket):
-        raise GalaError("TICKET_EXPIRED", "Esta invitación ya venció.", 400)
+        raise GalaError("TICKET_EXPIRED", "Esta invitación ya no está vigente.", 400)
     if not isinstance(attending, bool):
         raise GalaError("INVALID_RSVP", "Indica si asistirás o no.", 400)
 
     has_plus_one = bool(has_plus_one) if attending else False
     plus_one_name = (plus_one_name or "").strip() if has_plus_one else ""
     plus_one_email = (plus_one_email or "").strip() if has_plus_one else ""
-    if has_plus_one and not plus_one_name:
-        raise GalaError("INVALID_RSVP", "Escribe el nombre de tu acompañante.", 400)
-    if len(plus_one_name) > 200 or len(plus_one_email) > 254:
+    plus_one_phone = (plus_one_phone or "").strip() if has_plus_one else ""
+    if has_plus_one:
+        if not plus_one_name:
+            raise GalaError("INVALID_RSVP", "Escribe el nombre de tu acompañante.", 400)
+        if not plus_one_email:
+            raise GalaError("INVALID_RSVP", "Escribe el correo de tu acompañante.", 400)
+        if not plus_one_phone:
+            raise GalaError("INVALID_RSVP", "Escribe el celular de tu acompañante.", 400)
+    if len(plus_one_name) > 200 or len(plus_one_email) > 254 or len(plus_one_phone) > 30:
         raise GalaError("INVALID_RSVP", "Los datos del acompañante son demasiado largos.", 400)
-    if plus_one_email and ("@" not in plus_one_email or " " in plus_one_email):
-        raise GalaError("INVALID_RSVP", "El correo del acompañante no es válido.", 400)
+    if plus_one_email:
+        try:
+            validate_email(plus_one_email)
+        except ValidationError:
+            raise GalaError("INVALID_RSVP", "El correo del acompañante no es válido.", 400)
+    if plus_one_phone and not _valid_phone(plus_one_phone):
+        raise GalaError("INVALID_RSVP", "El celular del acompañante no es válido.", 400)
 
     ticket.rsvp_status = GalaTicket.Rsvp.CONFIRMED if attending else GalaTicket.Rsvp.DECLINED
     ticket.has_plus_one = has_plus_one
     ticket.plus_one_name = plus_one_name
     ticket.plus_one_email = plus_one_email
+    ticket.plus_one_phone = plus_one_phone
     ticket.rsvp_updated_at = timezone.now()
     ticket.save(
         update_fields=[
-            "rsvp_status", "has_plus_one", "plus_one_name", "plus_one_email", "rsvp_updated_at",
+            "rsvp_status", "has_plus_one", "plus_one_name", "plus_one_email", "plus_one_phone",
+            "rsvp_updated_at",
         ]
     )
     return ticket
@@ -331,6 +352,7 @@ def summary() -> dict:
                 "guest_name": t.guest_name,
                 "plus_one_name": t.plus_one_name,
                 "plus_one_email": t.plus_one_email,
+                "plus_one_phone": t.plus_one_phone,
             }
             for t in tickets.filter(has_plus_one=True).order_by("guest_name")
         ],

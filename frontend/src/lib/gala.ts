@@ -40,7 +40,12 @@ export interface GalaSummary {
   checked_in_people: number;
   checked_in_tickets: number;
   attendance_rate: number;
-  plus_ones: { guest_name: string; plus_one_name: string; plus_one_email: string }[];
+  plus_ones: {
+    guest_name: string;
+    plus_one_name: string;
+    plus_one_email: string;
+    plus_one_phone: string;
+  }[];
 }
 
 /** What the invitation's holder sees on /invitacion/<token>. */
@@ -50,8 +55,8 @@ export interface GuestInvitation {
   has_plus_one: boolean;
   plus_one_name: string;
   plus_one_email: string;
+  plus_one_phone: string;
   total_capacity: number;
-  expires_at: string;
   expired: boolean;
   qr_path: string;
 }
