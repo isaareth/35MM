@@ -76,6 +76,30 @@ class EmailTests(TestCase):
         self.assertIn('src="https://api.example/qr.png"', body)
         self.assertNotIn("<b>Ana</b>", body)
         self.assertIn("&lt;b&gt;Ana&lt;/b&gt;", body)
+
+    def test_email_offers_calendar_and_directions_links(self):
+        from urllib.parse import parse_qs, urlparse
+
+        ticket = make_ticket()
+        _subject, text, body = gala.build_invitation_email(ticket, "https://api.example/qr.png")
+
+        calendar = gala.calendar_url(gala.invitation_url(ticket))
+        parsed = urlparse(calendar)
+        self.assertEqual((parsed.netloc, parsed.path), ("calendar.google.com", "/calendar/render"))
+        query = parse_qs(parsed.query)
+        self.assertEqual(query["dates"], ["20261114/20261115"])
+        self.assertIn("Auditorio Fundadores", query["location"][0])
+        self.assertIn(str(ticket.id), query["details"][0])
+
+        maps = parse_qs(urlparse(gala.maps_url()).query)
+        self.assertIn("Auditorio Fundadores", maps["query"][0])
+        self.assertIn("Medellín", maps["query"][0])
+
+        for shown in (text, body):
+            self.assertIn("calendar.google.com", shown)
+            self.assertIn("google.com/maps", shown)
+        self.assertIn("Añadir al calendario", body)
+        self.assertIn("Cómo llegar", body)
         for shown in (text, body):
             self.assertNotIn("20/11", shown)
             self.assertNotIn("válida hasta", shown.lower())

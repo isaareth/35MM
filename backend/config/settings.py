@@ -167,6 +167,7 @@ REGISTRATIONS_OPEN = env.bool("REGISTRATIONS_OPEN", default=True)
 FRONTEND_URL = env("FRONTEND_URL", default="https://35mm-tvu.vercel.app").rstrip("/")
 # Invitations stop working after this moment (end of Nov 20 in Colombia).
 GALA_TICKET_EXPIRES_AT = env("GALA_TICKET_EXPIRES_AT", default="2026-11-20T23:59:59-05:00")
+GALA_DATE = env("GALA_DATE", default="2026-11-14")  # ISO date, used for the calendar link
 GALA_DATE_LABEL = env("GALA_DATE_LABEL", default="14 de noviembre de 2026")
 GALA_PLACE = env("GALA_PLACE", default="Auditorio Fundadores · Universidad EAFIT")
 GALA_TIME = env("GALA_TIME", default="")  # e.g. "7:00 p. m."; left out of the email when empty

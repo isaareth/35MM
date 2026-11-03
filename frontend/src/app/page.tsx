@@ -58,7 +58,7 @@ export default function Home() {
     // OS-level prefers-reduced-motion setting automatically (AC-025) —
     // transform/layout animations are skipped, opacity fades still play.
     <MotionConfig reducedMotion="user">
-      <div className="bg-ink min-h-screen relative">
+      <div className="bg-ink min-h-screen relative cursor-none">
         <GrainOverlay />
         {!isMobile && <CustomCursor state={cursorState} />}
         <Navbar onCursorChange={setCursor} />

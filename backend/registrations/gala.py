@@ -6,6 +6,8 @@ import io
 import logging
 import uuid
 from dataclasses import dataclass
+from datetime import date, timedelta
+from urllib.parse import urlencode
 
 import segno
 from django.conf import settings
@@ -76,9 +78,30 @@ def qr_png(ticket: GalaTicket) -> bytes:
     return buffer.getvalue()
 
 
+def calendar_url(link: str) -> str:
+    """Google Calendar "add event" link. The gala's time is not published, so
+    it is an all-day event on the gala's date."""
+    start = date.fromisoformat(settings.GALA_DATE)
+    params = {
+        "action": "TEMPLATE",
+        "text": "Gala de premiación · 35mm Festival de Cortos",
+        "dates": f"{start:%Y%m%d}/{start + timedelta(days=1):%Y%m%d}",
+        "location": settings.GALA_PLACE,
+        "details": f"Tu invitación personal (con tu código QR): {link}",
+    }
+    return "https://calendar.google.com/calendar/render?" + urlencode(params)
+
+
+def maps_url() -> str:
+    place = settings.GALA_PLACE.replace("·", " ")
+    return "https://www.google.com/maps/search/?" + urlencode({"api": 1, "query": f"{place} Medellín"})
+
+
 def build_invitation_email(ticket: GalaTicket, qr_url: str):
     name = ticket.guest_name
     link = invitation_url(ticket)
+    add_to_calendar = calendar_url(link)
+    directions = maps_url()
     when = [("Fecha", settings.GALA_DATE_LABEL), ("Lugar", settings.GALA_PLACE)]
     if settings.GALA_TIME:
         when.insert(1, ("Hora", settings.GALA_TIME))
@@ -97,6 +120,9 @@ def build_invitation_email(ticket: GalaTicket, qr_url: str):
         "",
         "Confirma tu asistencia (y si vendrás con acompañante) en este enlace, donde también "
         f"puedes ver tu código QR:\n{link}",
+        "",
+        f"Añadir a tu calendario: {add_to_calendar}",
+        f"Cómo llegar: {directions}",
         "",
         "Es personal: no la compartas.",
         "",
@@ -126,6 +152,7 @@ def build_invitation_email(ticket: GalaTicket, qr_url: str):
 </div>
 <p style="margin:0 0 24px;text-align:center;font-size:13px;color:#666">Preséntalo en la puerta, desde el celular o impreso.<br>Sirve para ingresar tú y, si quieres, un acompañante.</p>
 <p style="text-align:center;margin:0 0 24px"><a href="{html.escape(link)}" style="display:inline-block;background:#4820B7;color:#ffffff;text-decoration:none;font-weight:700;font-size:14px;padding:14px 28px">Confirmar asistencia</a></p>
+<p style="text-align:center;margin:0 0 24px;font-size:13px"><a href="{html.escape(add_to_calendar)}" style="color:#4820B7;font-weight:600">Añadir al calendario</a>&nbsp;&nbsp;·&nbsp;&nbsp;<a href="{html.escape(directions)}" style="color:#4820B7;font-weight:600">Cómo llegar</a></p>
 <p style="margin:0;font-size:12px;line-height:1.5;color:#8a8a8a">Es personal: no la compartas. Si el código no se ve, abre el botón de arriba para verlo en línea.</p>
 </td></tr>
 <tr><td style="padding:16px 24px;background:#f3f1fa;font-size:12px;color:#8a8a8a">Equipo 35mm – Producciones TVU</td></tr>
