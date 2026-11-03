@@ -60,7 +60,11 @@ export default function Countdown() {
           </span>
         </p>
       )}
-      <p className="font-body text-xs text-white/40 text-right leading-snug">{GALA_INFO.date}</p>
+      <p className="font-body text-xs text-white/40 text-right leading-snug">
+        {GALA_INFO.date}
+        <br />
+        Citación {GALA_INFO.callTime}
+      </p>
     </div>
   );
 }

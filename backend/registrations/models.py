@@ -158,6 +158,11 @@ class GalaTicket(models.Model):
     plus_one_name = models.CharField(max_length=200, blank=True)
     plus_one_email = models.EmailField(blank=True)
     plus_one_phone = models.CharField(max_length=30, blank=True)
+    plus_one_data_consent_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Cuándo el invitado declaró que su acompañante acepta el tratamiento de sus datos personales.",
+    )
 
     total_capacity = models.PositiveSmallIntegerField(default=2)
     used_capacity = models.PositiveSmallIntegerField(default=0)

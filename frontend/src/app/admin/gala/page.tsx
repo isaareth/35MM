@@ -230,6 +230,8 @@ export default function AdminGalaPage() {
                     invitado por {p.guest_name}
                     {p.plus_one_email && ` · ${p.plus_one_email}`}
                     {p.plus_one_phone && ` · ${p.plus_one_phone}`}
+                    {p.plus_one_data_consent_at &&
+                      ` · autorizó datos el ${new Date(p.plus_one_data_consent_at).toLocaleDateString("es-CO")}`}
                   </span>
                 </li>
               ))}

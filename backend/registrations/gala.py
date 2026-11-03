@@ -6,8 +6,10 @@ import io
 import logging
 import uuid
 from dataclasses import dataclass
-from datetime import date, timedelta
+from datetime import date, datetime, time, timedelta
+from datetime import timezone as dt_timezone
 from urllib.parse import urlencode
+from zoneinfo import ZoneInfo
 
 import segno
 from django.conf import settings
@@ -78,23 +80,40 @@ def qr_png(ticket: GalaTicket) -> bytes:
     return buffer.getvalue()
 
 
+def gala_window() -> tuple[datetime, datetime]:
+    """From the guests' call time until the gala ends (aware datetimes, Colombia time)."""
+    day = date.fromisoformat(settings.GALA_DATE)
+    zone = ZoneInfo(settings.TIME_ZONE)
+    call = datetime.combine(day, time.fromisoformat(settings.GALA_CALL_TIME), tzinfo=zone)
+    begins = datetime.combine(day, time.fromisoformat(settings.GALA_START_TIME), tzinfo=zone)
+    return call, begins + timedelta(hours=settings.GALA_DURATION_HOURS)
+
+
+def schedule_note() -> str:
+    parts = []
+    if settings.GALA_CALL_LABEL:
+        parts.append(f"Citación a las {settings.GALA_CALL_LABEL}")
+    if settings.GALA_TIME:
+        parts.append(f"la gala empieza a las {settings.GALA_TIME}")
+    return "; ".join(parts) + ". " if parts else ""
+
+
 def calendar_url(link: str) -> str:
-    """Google Calendar "add event" link. The gala's time is not published, so
-    it is an all-day event on the gala's date."""
-    start = date.fromisoformat(settings.GALA_DATE)
+    """Google Calendar "add event" link, in UTC so it is right on any device."""
+    start, end = gala_window()
+    utc = lambda moment: moment.astimezone(dt_timezone.utc).strftime("%Y%m%dT%H%M%SZ")  # noqa: E731
     params = {
         "action": "TEMPLATE",
         "text": "Gala de premiación · 35mm Festival de Cortos",
-        "dates": f"{start:%Y%m%d}/{start + timedelta(days=1):%Y%m%d}",
+        "dates": f"{utc(start)}/{utc(end)}",
         "location": settings.GALA_PLACE,
-        "details": f"Tu invitación personal (con tu código QR): {link}",
+        "details": f"{schedule_note()}Tu invitación personal (con tu código QR): {link}",
     }
     return "https://calendar.google.com/calendar/render?" + urlencode(params)
 
 
 def maps_url() -> str:
-    place = settings.GALA_PLACE.replace("·", " ")
-    return "https://www.google.com/maps/search/?" + urlencode({"api": 1, "query": f"{place} Medellín"})
+    return settings.GALA_MAPS_URL
 
 
 def build_invitation_email(ticket: GalaTicket, qr_url: str):
@@ -102,9 +121,12 @@ def build_invitation_email(ticket: GalaTicket, qr_url: str):
     link = invitation_url(ticket)
     add_to_calendar = calendar_url(link)
     directions = maps_url()
-    when = [("Fecha", settings.GALA_DATE_LABEL), ("Lugar", settings.GALA_PLACE)]
+    when = [("Fecha", settings.GALA_DATE_LABEL)]
+    if settings.GALA_CALL_LABEL:
+        when.append(("Citación", f"{settings.GALA_CALL_LABEL} (llegada de los invitados)"))
     if settings.GALA_TIME:
-        when.insert(1, ("Hora", settings.GALA_TIME))
+        when.append(("Inicio de la gala", settings.GALA_TIME))
+    when.append(("Lugar", settings.GALA_PLACE))
 
     subject = f"Tu invitación a la gala de 35mm · {settings.GALA_DATE_LABEL.rsplit(' de ', 1)[0]}"
 
@@ -237,7 +259,13 @@ def _valid_phone(value: str) -> bool:
 
 
 def apply_rsvp(
-    ticket: GalaTicket, attending, has_plus_one, plus_one_name, plus_one_email, plus_one_phone
+    ticket: GalaTicket,
+    attending,
+    has_plus_one,
+    plus_one_name,
+    plus_one_email,
+    plus_one_phone,
+    plus_one_data_consent,
 ) -> GalaTicket:
     if is_expired(ticket):
         raise GalaError("TICKET_EXPIRED", "Esta invitación ya no está vigente.", 400)
@@ -255,6 +283,12 @@ def apply_rsvp(
             raise GalaError("INVALID_RSVP", "Escribe el correo de tu acompañante.", 400)
         if not plus_one_phone:
             raise GalaError("INVALID_RSVP", "Escribe el celular de tu acompañante.", 400)
+        if plus_one_data_consent is not True:
+            raise GalaError(
+                "CONSENT_REQUIRED",
+                "Tu acompañante debe aceptar el tratamiento de sus datos personales para poder registrarlo.",
+                400,
+            )
     if len(plus_one_name) > 200 or len(plus_one_email) > 254 or len(plus_one_phone) > 30:
         raise GalaError("INVALID_RSVP", "Los datos del acompañante son demasiado largos.", 400)
     if plus_one_email:
@@ -270,11 +304,12 @@ def apply_rsvp(
     ticket.plus_one_name = plus_one_name
     ticket.plus_one_email = plus_one_email
     ticket.plus_one_phone = plus_one_phone
+    ticket.plus_one_data_consent_at = timezone.now() if has_plus_one else None
     ticket.rsvp_updated_at = timezone.now()
     ticket.save(
         update_fields=[
             "rsvp_status", "has_plus_one", "plus_one_name", "plus_one_email", "plus_one_phone",
-            "rsvp_updated_at",
+            "plus_one_data_consent_at", "rsvp_updated_at",
         ]
     )
     return ticket
@@ -380,6 +415,7 @@ def summary() -> dict:
                 "plus_one_name": t.plus_one_name,
                 "plus_one_email": t.plus_one_email,
                 "plus_one_phone": t.plus_one_phone,
+                "plus_one_data_consent_at": t.plus_one_data_consent_at,
             }
             for t in tickets.filter(has_plus_one=True).order_by("guest_name")
         ],

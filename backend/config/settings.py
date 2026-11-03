@@ -170,4 +170,9 @@ GALA_TICKET_EXPIRES_AT = env("GALA_TICKET_EXPIRES_AT", default="2026-11-20T23:59
 GALA_DATE = env("GALA_DATE", default="2026-11-14")  # ISO date, used for the calendar link
 GALA_DATE_LABEL = env("GALA_DATE_LABEL", default="14 de noviembre de 2026")
 GALA_PLACE = env("GALA_PLACE", default="Auditorio Fundadores · Universidad EAFIT")
-GALA_TIME = env("GALA_TIME", default="")  # e.g. "7:00 p. m."; left out of the email when empty
+GALA_CALL_TIME = env("GALA_CALL_TIME", default="17:00")  # guests are asked to arrive (24h, Colombia time)
+GALA_CALL_LABEL = env("GALA_CALL_LABEL", default="5:00 p. m.")  # shown in the email; empty hides the row
+GALA_START_TIME = env("GALA_START_TIME", default="18:00")  # the gala begins
+GALA_DURATION_HOURS = env.int("GALA_DURATION_HOURS", default=3)
+GALA_TIME = env("GALA_TIME", default="6:00 p. m. (dura alrededor de 3 horas)")  # shown in the email
+GALA_MAPS_URL = env("GALA_MAPS_URL", default="https://share.google/WJpJuNlOOdO65eAVk")

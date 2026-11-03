@@ -71,6 +71,11 @@ class EmailTests(TestCase):
         ticket = make_ticket(guest_name="<b>Ana</b>")
         subject, text, body = gala.build_invitation_email(ticket, "https://api.example/qr.png")
         self.assertIn("gala", subject.lower())
+        self.assertIn("Citación: 5:00 p. m. (llegada de los invitados)", text)
+        self.assertIn("Inicio de la gala: 6:00 p. m. (dura alrededor de 3 horas)", text)
+        self.assertLess(text.index("Citación:"), text.index("Inicio de la gala:"))
+        self.assertIn("5:00 p. m.", body)
+        self.assertIn("6:00 p. m.", body)
         self.assertIn(f"/invitacion/{ticket.id}", text)
         self.assertIn(f"/invitacion/{ticket.id}", body)
         self.assertIn('src="https://api.example/qr.png"', body)
@@ -87,17 +92,18 @@ class EmailTests(TestCase):
         parsed = urlparse(calendar)
         self.assertEqual((parsed.netloc, parsed.path), ("calendar.google.com", "/calendar/render"))
         query = parse_qs(parsed.query)
-        self.assertEqual(query["dates"], ["20261114/20261115"])
+        # 5:00 p. m. (call) to 9:00 p. m. (gala 6:00 + 3 h), Colombia time (UTC-5), in UTC
+        self.assertEqual(query["dates"], ["20261114T220000Z/20261115T020000Z"])
+        self.assertIn("Citación a las 5:00 p. m.", query["details"][0])
+        self.assertIn("la gala empieza a las 6:00 p. m.", query["details"][0])
         self.assertIn("Auditorio Fundadores", query["location"][0])
         self.assertIn(str(ticket.id), query["details"][0])
 
-        maps = parse_qs(urlparse(gala.maps_url()).query)
-        self.assertIn("Auditorio Fundadores", maps["query"][0])
-        self.assertIn("Medellín", maps["query"][0])
+        self.assertEqual(gala.maps_url(), "https://share.google/WJpJuNlOOdO65eAVk")
 
         for shown in (text, body):
             self.assertIn("calendar.google.com", shown)
-            self.assertIn("google.com/maps", shown)
+            self.assertIn("https://share.google/WJpJuNlOOdO65eAVk", shown)
         self.assertIn("Añadir al calendario", body)
         self.assertIn("Cómo llegar", body)
         for shown in (text, body):
@@ -108,9 +114,14 @@ class EmailTests(TestCase):
     @override_settings(GALA_TIME="7:00 p. m.")
     def test_time_appears_only_when_configured(self):
         ticket = make_ticket()
-        self.assertIn("Hora: 7:00 p. m.", gala.build_invitation_email(ticket, "u")[1])
+        self.assertIn("Inicio de la gala: 7:00 p. m.", gala.build_invitation_email(ticket, "u")[1])
         with override_settings(GALA_TIME=""):
-            self.assertNotIn("Hora:", gala.build_invitation_email(ticket, "u")[1])
+            self.assertNotIn("Inicio de la gala:", gala.build_invitation_email(ticket, "u")[1])
+
+    def test_the_call_time_row_can_be_hidden(self):
+        ticket = make_ticket()
+        with override_settings(GALA_CALL_LABEL=""):
+            self.assertNotIn("Citación:", gala.build_invitation_email(ticket, "u")[1])
 
     def test_sent_at_is_set_only_when_delivery_succeeds(self):
         ticket = make_ticket()
@@ -243,6 +254,7 @@ class RsvpTests(TestCase):
                 "plus_one_name": " Jane Doe ",
                 "plus_one_email": "jane@x.co",
                 "plus_one_phone": " +57 300 123 4567 ",
+                "plus_one_data_consent": True,
             },
             format="json",
         )
@@ -255,10 +267,15 @@ class RsvpTests(TestCase):
         )
         guest_view = self.client.get(f"/api/gala/invitations/{self.ticket.id}/").json()
         self.assertEqual(guest_view["plus_one_phone"], "+57 300 123 4567")
+        self.assertTrue(guest_view["plus_one_data_consent"])
+        self.assertIsNotNone(self.ticket.plus_one_data_consent_at)
         self.assertIsNotNone(self.ticket.rsvp_updated_at)
 
     def test_plus_one_needs_name_email_and_phone_all_valid(self):
-        full = {"attending": True, "has_plus_one": True, "plus_one_name": "J", "plus_one_email": "j@x.co", "plus_one_phone": "3001234567"}
+        full = {
+            "attending": True, "has_plus_one": True, "plus_one_name": "J", "plus_one_email": "j@x.co",
+            "plus_one_phone": "3001234567", "plus_one_data_consent": True,
+        }
         cases = {
             "nombre": {**full, "plus_one_name": " "},
             "correo": {**full, "plus_one_email": ""},
@@ -275,12 +292,38 @@ class RsvpTests(TestCase):
         self.assertEqual(self.ticket.rsvp_status, "PENDING")
         self.assertEqual(self.client.post(self.url, full, format="json").status_code, 200)
 
+    def test_the_companion_must_accept_the_processing_of_their_data(self):
+        full = {
+            "attending": True, "has_plus_one": True, "plus_one_name": "J", "plus_one_email": "j@x.co",
+            "plus_one_phone": "3001234567",
+        }
+        for label, extra in {"ausente": {}, "falso": {"plus_one_data_consent": False}, "texto": {"plus_one_data_consent": "true"}}.items():
+            response = self.client.post(self.url, {**full, **extra}, format="json")
+            self.assertEqual((response.status_code, response.json()["code"]), (400, "CONSENT_REQUIRED"), label)
+        self.ticket.refresh_from_db()
+        self.assertEqual((self.ticket.rsvp_status, self.ticket.plus_one_name, self.ticket.plus_one_data_consent_at), ("PENDING", "", None))
+
+    def test_consent_is_recorded_with_a_timestamp_and_cleared_when_going_alone(self):
+        plus = {"attending": True, "has_plus_one": True, "plus_one_name": "J", "plus_one_email": "j@x.co",
+                "plus_one_phone": "3001234567", "plus_one_data_consent": True}
+        self.client.post(self.url, plus, format="json")
+        self.ticket.refresh_from_db()
+        self.assertIsNotNone(self.ticket.plus_one_data_consent_at)
+
+        self.client.post(self.url, {"attending": True, "has_plus_one": False}, format="json")
+        self.ticket.refresh_from_db()
+        self.assertEqual((self.ticket.has_plus_one, self.ticket.plus_one_name, self.ticket.plus_one_data_consent_at), (False, "", None))
+        self.assertFalse(self.client.get(f"/api/gala/invitations/{self.ticket.id}/").json()["plus_one_data_consent"])
+
     def test_plus_one_data_is_not_required_when_going_alone(self):
         response = self.client.post(self.url, {"attending": True, "has_plus_one": False}, format="json")
         self.assertEqual(response.status_code, 200)
 
     def test_declining_clears_plus_one_and_can_be_changed_later(self):
-        plus = {"has_plus_one": True, "plus_one_name": "J", "plus_one_email": "j@x.co", "plus_one_phone": "3001234567"}
+        plus = {
+            "has_plus_one": True, "plus_one_name": "J", "plus_one_email": "j@x.co",
+            "plus_one_phone": "3001234567", "plus_one_data_consent": True,
+        }
         self.client.post(self.url, {"attending": True, **plus}, format="json")
         self.client.post(self.url, {"attending": False, **plus}, format="json")
         self.ticket.refresh_from_db()
@@ -363,7 +406,7 @@ class DoorCheckinTests(TestCase):
     def test_lookup_shows_guest_details_without_consuming_capacity(self):
         self.client.post(
             f"/api/gala/invitations/{self.ticket.id}/rsvp/",
-            {"attending": True, "has_plus_one": True, "plus_one_name": "Jane", "plus_one_email": "jane@x.co", "plus_one_phone": "3001234567"},
+            {"attending": True, "has_plus_one": True, "plus_one_name": "Jane", "plus_one_email": "jane@x.co", "plus_one_phone": "3001234567", "plus_one_data_consent": True},
             format="json",
         )
         data = self.client.get(f"/api/admin/gala/tickets/{self.ticket.id}/").json()
@@ -384,9 +427,9 @@ class SummaryTests(TestCase):
         now = timezone.now()
         GalaTicket.objects.all().update(sent_at=now)
         a, b, c, d = tickets
-        gala.apply_rsvp(a, True, True, "Jane", "jane@x.co", "3001234567")  # 2 people
-        gala.apply_rsvp(b, True, False, "", "", "")  # 1 person
-        gala.apply_rsvp(c, False, False, "", "", "")
+        gala.apply_rsvp(a, True, True, "Jane", "jane@x.co", "3001234567", True)  # 2 people
+        gala.apply_rsvp(b, True, False, "", "", "", False)  # 1 person
+        gala.apply_rsvp(c, False, False, "", "", "", False)
         # d never answered
         gala.validate_checkin(a.id, 2)
         gala.validate_checkin(d.id, 1)  # walk-in without RSVP
@@ -398,10 +441,12 @@ class SummaryTests(TestCase):
         self.assertEqual(data["confirmed_attendees"], 3)
         self.assertEqual((data["checked_in_people"], data["checked_in_tickets"]), (3, 2))
         self.assertEqual(data["attendance_rate"], 67)  # 2 of the 3 confirmed attendees came
+        (entry,) = data["plus_ones"]
         self.assertEqual(
-            data["plus_ones"],
-            [{"guest_name": "Persona 1", "plus_one_name": "Jane", "plus_one_email": "jane@x.co", "plus_one_phone": "3001234567"}],
+            {k: v for k, v in entry.items() if k != "plus_one_data_consent_at"},
+            {"guest_name": "Persona 1", "plus_one_name": "Jane", "plus_one_email": "jane@x.co", "plus_one_phone": "3001234567"},
         )
+        self.assertIsNotNone(entry["plus_one_data_consent_at"])
 
     def test_empty(self):
         data = admin_client().get("/api/admin/gala/summary/").json()

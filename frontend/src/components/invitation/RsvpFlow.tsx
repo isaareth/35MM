@@ -6,7 +6,7 @@ import Confetti from "@/components/invitation/Confetti";
 import type { GuestInvitation } from "@/lib/gala";
 
 type Step = "attend" | "companion" | "details" | "done";
-type PlusErrors = Partial<Record<"name" | "email" | "phone", string>>;
+type PlusErrors = Partial<Record<"name" | "email" | "phone" | "consent", string>>;
 
 const STEP_NUMBER: Record<Exclude<Step, "done">, number> = { attend: 1, companion: 2, details: 3 };
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -32,6 +32,7 @@ export default function RsvpFlow({
   const [plusName, setPlusName] = useState(invitation.plus_one_name);
   const [plusEmail, setPlusEmail] = useState(invitation.plus_one_email);
   const [plusPhone, setPlusPhone] = useState(invitation.plus_one_phone);
+  const [plusConsent, setPlusConsent] = useState(invitation.plus_one_data_consent);
   const [errors, setErrors] = useState<PlusErrors>({});
   const [saving, setSaving] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
@@ -63,6 +64,7 @@ export default function RsvpFlow({
           plus_one_name: plusName,
           plus_one_email: plusEmail,
           plus_one_phone: plusPhone,
+          plus_one_data_consent: withPlusOne && plusConsent,
         }),
       });
       const data = await res.json().catch(() => null);
@@ -77,6 +79,7 @@ export default function RsvpFlow({
         plus_one_name: data.plus_one_name,
         plus_one_email: withPlusOne ? plusEmail.trim() : "",
         plus_one_phone: withPlusOne ? plusPhone.trim() : "",
+        plus_one_data_consent: withPlusOne && plusConsent,
       });
       setCelebrate(attending);
       go("done");
@@ -94,6 +97,9 @@ export default function RsvpFlow({
     else if (!EMAIL_RE.test(plusEmail.trim())) next.email = "Revisa el correo: no parece válido.";
     if (!plusPhone.trim()) next.phone = "Escribe el celular de tu acompañante.";
     else if (!validPhone(plusPhone.trim())) next.phone = "Revisa el celular: usa solo números (7 a 15 dígitos).";
+    if (!plusConsent) {
+      next.consent = "Necesitamos que tu acompañante acepte el tratamiento de sus datos personales para registrarlo.";
+    }
     setErrors(next);
     if (Object.keys(next).length === 0) save(true, true);
   };
@@ -201,6 +207,42 @@ export default function RsvpFlow({
                   error={errors.phone}
                   placeholder="300 123 4567"
                 />
+
+                <label
+                  className={`flex items-start gap-4 border px-5 py-5 cursor-pointer transition-colors ${
+                    errors.consent
+                      ? "border-red-400 bg-red-400/5"
+                      : plusConsent
+                        ? "border-neon/60 bg-neon/5"
+                        : "border-white/25 hover:border-white/45"
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={plusConsent}
+                    onChange={(e) => setPlusConsent(e.target.checked)}
+                    aria-invalid={Boolean(errors.consent)}
+                    className="mt-1 accent-purple w-5 h-5 shrink-0"
+                  />
+                  <span className="font-body text-base text-white/85 leading-snug">
+                    Mi acompañante acepta el tratamiento de sus datos personales (nombre, correo y celular)
+                    para gestionar su ingreso a la gala y recibir información de futuros eventos de 35mm,
+                    según la{" "}
+                    <a
+                      href="/terminos#tratamiento-de-datos"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="text-neon underline underline-offset-4 hover:text-white"
+                    >
+                      política de tratamiento de datos
+                    </a>
+                    .<span className="text-neon text-xs"> · obligatorio</span>
+                  </span>
+                </label>
+                {errors.consent && (
+                  <p className="font-body text-sm md:text-base text-red-300 -mt-3">{errors.consent}</p>
+                )}
               </div>
               <button
                 type="button"

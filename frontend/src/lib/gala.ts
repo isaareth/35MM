@@ -10,13 +10,19 @@ export const RSVP_LABEL: Record<Rsvp, string> = {
 export const GALA_INFO = {
   date: "14 de noviembre de 2026",
   dateIso: "2026-11-14",
+  callTime: "5:00 p. m.",
+  time: "6:00 p. m.",
+  duration: "Dura alrededor de 3 horas",
+  /** Colombia has no daylight saving time, so the offset is always -05:00. */
+  callsAt: "2026-11-14T17:00:00-05:00",
+  startsAt: "2026-11-14T18:00:00-05:00",
+  durationHours: 3,
   place: "Auditorio Fundadores · Universidad EAFIT",
   title: "Gala de premiación · 35mm Festival de Cortos",
 };
 
-export const GALA_MAPS_URL =
-  "https://www.google.com/maps/search/?api=1&query=" +
-  encodeURIComponent("Auditorio Fundadores Universidad EAFIT Medellín");
+/** Google's place card for the Auditorio Fundadores. */
+export const GALA_MAPS_URL = "https://share.google/WJpJuNlOOdO65eAVk";
 
 /** Whole days from today (local time) to the gala: 0 = today, negative = already happened. */
 export function daysUntilGala(now: Date = new Date()): number {
@@ -26,22 +32,30 @@ export function daysUntilGala(now: Date = new Date()): number {
   return Math.round((gala - today) / 86_400_000);
 }
 
-const compactDate = (iso: string) => iso.replaceAll("-", "");
-
-function dayAfter(iso: string): string {
-  const [y, m, d] = iso.split("-").map(Number);
-  const next = new Date(Date.UTC(y, m - 1, d + 1));
-  return next.toISOString().slice(0, 10);
+/** "20261114T230000Z": the moment in UTC, which every calendar app reads the same way. */
+function utcStamp(moment: Date): string {
+  return moment.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
 }
 
-/** The time of the gala is not published yet, so the event is all-day. */
+/** From the guests' call time until the gala ends. */
+function galaWindow(): { start: string; end: string } {
+  const begins = new Date(GALA_INFO.startsAt);
+  const end = new Date(begins.getTime() + GALA_INFO.durationHours * 3_600_000);
+  return { start: utcStamp(new Date(GALA_INFO.callsAt)), end: utcStamp(end) };
+}
+
+const calendarDetails = (detailsUrl: string) =>
+  `Citación a las ${GALA_INFO.callTime}; la gala empieza a las ${GALA_INFO.time} y dura alrededor de ` +
+  `${GALA_INFO.durationHours} horas. Tu invitación personal (con tu código QR): ${detailsUrl}`;
+
 export function googleCalendarUrl(detailsUrl: string): string {
+  const { start, end } = galaWindow();
   const params = new URLSearchParams({
     action: "TEMPLATE",
     text: GALA_INFO.title,
-    dates: `${compactDate(GALA_INFO.dateIso)}/${compactDate(dayAfter(GALA_INFO.dateIso))}`,
+    dates: `${start}/${end}`,
     location: GALA_INFO.place,
-    details: `Tu invitación personal (con tu código QR): ${detailsUrl}`,
+    details: calendarDetails(detailsUrl),
   });
   return `https://calendar.google.com/calendar/render?${params.toString()}`;
 }
@@ -75,20 +89,21 @@ function icsFold(line: string): string {
 }
 
 export function buildIcs(detailsUrl: string, now: Date = new Date()): string {
-  const stamp = now.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+  const stamp = utcStamp(now);
+  const { start, end } = galaWindow();
   const lines = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
     "PRODID:-//35mm Festival de Cortos//Gala//ES",
     "CALSCALE:GREGORIAN",
     "BEGIN:VEVENT",
-    `UID:gala-${compactDate(GALA_INFO.dateIso)}@35mm-festival`,
+    `UID:gala-${GALA_INFO.dateIso.replaceAll("-", "")}@35mm-festival`,
     `DTSTAMP:${stamp}`,
-    `DTSTART;VALUE=DATE:${compactDate(GALA_INFO.dateIso)}`,
-    `DTEND;VALUE=DATE:${compactDate(dayAfter(GALA_INFO.dateIso))}`,
+    `DTSTART:${start}`,
+    `DTEND:${end}`,
     `SUMMARY:${icsEscape(GALA_INFO.title)}`,
     `LOCATION:${icsEscape(GALA_INFO.place)}`,
-    `DESCRIPTION:${icsEscape(`Tu invitación personal (con tu código QR): ${detailsUrl}`)}`,
+    `DESCRIPTION:${icsEscape(calendarDetails(detailsUrl))}`,
     "END:VEVENT",
     "END:VCALENDAR",
   ];
@@ -128,6 +143,7 @@ export interface GalaSummary {
     plus_one_name: string;
     plus_one_email: string;
     plus_one_phone: string;
+    plus_one_data_consent_at: string | null;
   }[];
 }
 
@@ -139,6 +155,7 @@ export interface GuestInvitation {
   plus_one_name: string;
   plus_one_email: string;
   plus_one_phone: string;
+  plus_one_data_consent: boolean;
   total_capacity: number;
   expired: boolean;
   qr_path: string;

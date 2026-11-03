@@ -205,7 +205,10 @@ export default function TerminosPage() {
           </Section>
 
           <Section n="10" title="Anexos">
-            <p className="font-body font-semibold text-white text-sm uppercase tracking-wide mb-3">
+            <p
+              id="tratamiento-de-datos"
+              className="font-body font-semibold text-white text-sm uppercase tracking-wide mb-3 scroll-mt-24"
+            >
               10.1. Aviso de privacidad y autorización para el tratamiento de datos personales
             </p>
             <P>
