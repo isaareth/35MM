@@ -53,20 +53,12 @@ export default function Ticket({
               <dd className="font-body text-white text-sm leading-snug">{GALA_INFO.date}</dd>
             </div>
             <div>
-              <dt className="font-body text-[10px] tracking-widest uppercase text-white/45 mb-1">Citación</dt>
-              <dd className="font-body text-white text-sm leading-snug">
-                {GALA_INFO.callTime}
-                <span className="block text-white/55 text-xs mt-0.5">Llegada de los invitados</span>
-              </dd>
+              <dt className="font-body text-[10px] tracking-widest uppercase text-white/45 mb-1">
+                Hora de citación
+              </dt>
+              <dd className="font-body text-white text-sm leading-snug">{GALA_INFO.callTime}</dd>
             </div>
-            <div>
-              <dt className="font-body text-[10px] tracking-widest uppercase text-white/45 mb-1">Inicio de la gala</dt>
-              <dd className="font-body text-white text-sm leading-snug">
-                {GALA_INFO.time}
-                <span className="block text-white/55 text-xs mt-0.5">{GALA_INFO.duration}</span>
-              </dd>
-            </div>
-            <div>
+            <div className="col-span-2">
               <dt className="font-body text-[10px] tracking-widest uppercase text-white/45 mb-1">Lugar</dt>
               <dd className="font-body text-white text-sm leading-snug">{GALA_INFO.place}</dd>
             </div>

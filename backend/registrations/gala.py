@@ -85,17 +85,13 @@ def gala_window() -> tuple[datetime, datetime]:
     day = date.fromisoformat(settings.GALA_DATE)
     zone = ZoneInfo(settings.TIME_ZONE)
     call = datetime.combine(day, time.fromisoformat(settings.GALA_CALL_TIME), tzinfo=zone)
-    begins = datetime.combine(day, time.fromisoformat(settings.GALA_START_TIME), tzinfo=zone)
-    return call, begins + timedelta(hours=settings.GALA_DURATION_HOURS)
+    end = datetime.combine(day, time.fromisoformat(settings.GALA_END_TIME), tzinfo=zone)
+    return call, end
 
 
 def schedule_note() -> str:
-    parts = []
-    if settings.GALA_CALL_LABEL:
-        parts.append(f"Citación a las {settings.GALA_CALL_LABEL}")
-    if settings.GALA_TIME:
-        parts.append(f"la gala empieza a las {settings.GALA_TIME}")
-    return "; ".join(parts) + ". " if parts else ""
+    """Only the call time is announced, so nobody plans to arrive later."""
+    return f"Hora de citación: {settings.GALA_CALL_LABEL}\n" if settings.GALA_CALL_LABEL else ""
 
 
 def calendar_url(link: str) -> str:
@@ -123,9 +119,7 @@ def build_invitation_email(ticket: GalaTicket, qr_url: str):
     directions = maps_url()
     when = [("Fecha", settings.GALA_DATE_LABEL)]
     if settings.GALA_CALL_LABEL:
-        when.append(("Citación", f"{settings.GALA_CALL_LABEL} (llegada de los invitados)"))
-    if settings.GALA_TIME:
-        when.append(("Inicio de la gala", settings.GALA_TIME))
+        when.append(("Hora de citación", settings.GALA_CALL_LABEL))
     when.append(("Lugar", settings.GALA_PLACE))
 
     subject = f"Tu invitación a la gala de 35mm · {settings.GALA_DATE_LABEL.rsplit(' de ', 1)[0]}"

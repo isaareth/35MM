@@ -71,11 +71,12 @@ class EmailTests(TestCase):
         ticket = make_ticket(guest_name="<b>Ana</b>")
         subject, text, body = gala.build_invitation_email(ticket, "https://api.example/qr.png")
         self.assertIn("gala", subject.lower())
-        self.assertIn("Citación: 5:00 p. m. (llegada de los invitados)", text)
-        self.assertIn("Inicio de la gala: 6:00 p. m. (dura alrededor de 3 horas)", text)
-        self.assertLess(text.index("Citación:"), text.index("Inicio de la gala:"))
+        self.assertIn("Hora de citación: 5:00 p. m.", text)
         self.assertIn("5:00 p. m.", body)
-        self.assertIn("6:00 p. m.", body)
+        # only the call time is announced: no start time, duration or "doors open" wording
+        for shown in (text, body):
+            for hidden in ("6:00", "18:00", "Inicio", "horas", "llegada", "puertas", "9:00", "21:00"):
+                self.assertNotIn(hidden, shown, hidden)
         self.assertIn(f"/invitacion/{ticket.id}", text)
         self.assertIn(f"/invitacion/{ticket.id}", body)
         self.assertIn('src="https://api.example/qr.png"', body)
@@ -92,10 +93,11 @@ class EmailTests(TestCase):
         parsed = urlparse(calendar)
         self.assertEqual((parsed.netloc, parsed.path), ("calendar.google.com", "/calendar/render"))
         query = parse_qs(parsed.query)
-        # 5:00 p. m. (call) to 9:00 p. m. (gala 6:00 + 3 h), Colombia time (UTC-5), in UTC
+        # from the 5:00 p. m. call time to the 9:00 p. m. close, Colombia time (UTC-5), in UTC
         self.assertEqual(query["dates"], ["20261114T220000Z/20261115T020000Z"])
-        self.assertIn("Citación a las 5:00 p. m.", query["details"][0])
-        self.assertIn("la gala empieza a las 6:00 p. m.", query["details"][0])
+        self.assertIn("Hora de citación: 5:00 p. m.", query["details"][0])
+        for hidden in ("6:00", "empieza", "dura", "horas"):
+            self.assertNotIn(hidden, query["details"][0], hidden)
         self.assertIn("Auditorio Fundadores", query["location"][0])
         self.assertIn(str(ticket.id), query["details"][0])
 
@@ -111,17 +113,10 @@ class EmailTests(TestCase):
             self.assertNotIn("válida hasta", shown.lower())
             self.assertNotIn("vigente", shown.lower())
 
-    @override_settings(GALA_TIME="7:00 p. m.")
-    def test_time_appears_only_when_configured(self):
-        ticket = make_ticket()
-        self.assertIn("Inicio de la gala: 7:00 p. m.", gala.build_invitation_email(ticket, "u")[1])
-        with override_settings(GALA_TIME=""):
-            self.assertNotIn("Inicio de la gala:", gala.build_invitation_email(ticket, "u")[1])
-
     def test_the_call_time_row_can_be_hidden(self):
         ticket = make_ticket()
         with override_settings(GALA_CALL_LABEL=""):
-            self.assertNotIn("Citación:", gala.build_invitation_email(ticket, "u")[1])
+            self.assertNotIn("Hora de citación", gala.build_invitation_email(ticket, "u")[1])
 
     def test_sent_at_is_set_only_when_delivery_succeeds(self):
         ticket = make_ticket()

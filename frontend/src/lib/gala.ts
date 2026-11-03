@@ -10,13 +10,12 @@ export const RSVP_LABEL: Record<Rsvp, string> = {
 export const GALA_INFO = {
   date: "14 de noviembre de 2026",
   dateIso: "2026-11-14",
+  /** The only time announced to guests: when they are asked to arrive. */
   callTime: "5:00 p. m.",
-  time: "6:00 p. m.",
-  duration: "Dura alrededor de 3 horas",
   /** Colombia has no daylight saving time, so the offset is always -05:00. */
   callsAt: "2026-11-14T17:00:00-05:00",
-  startsAt: "2026-11-14T18:00:00-05:00",
-  durationHours: 3,
+  /** Only closes the calendar event; never shown as text. */
+  endsAt: "2026-11-14T21:00:00-05:00",
   place: "Auditorio Fundadores · Universidad EAFIT",
   title: "Gala de premiación · 35mm Festival de Cortos",
 };
@@ -37,16 +36,13 @@ function utcStamp(moment: Date): string {
   return moment.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
 }
 
-/** From the guests' call time until the gala ends. */
+/** From the guests' call time until the event closes. */
 function galaWindow(): { start: string; end: string } {
-  const begins = new Date(GALA_INFO.startsAt);
-  const end = new Date(begins.getTime() + GALA_INFO.durationHours * 3_600_000);
-  return { start: utcStamp(new Date(GALA_INFO.callsAt)), end: utcStamp(end) };
+  return { start: utcStamp(new Date(GALA_INFO.callsAt)), end: utcStamp(new Date(GALA_INFO.endsAt)) };
 }
 
 const calendarDetails = (detailsUrl: string) =>
-  `Citación a las ${GALA_INFO.callTime}; la gala empieza a las ${GALA_INFO.time} y dura alrededor de ` +
-  `${GALA_INFO.durationHours} horas. Tu invitación personal (con tu código QR): ${detailsUrl}`;
+  `Hora de citación: ${GALA_INFO.callTime}\nTu invitación personal (con tu código QR): ${detailsUrl}`;
 
 export function googleCalendarUrl(detailsUrl: string): string {
   const { start, end } = galaWindow();
