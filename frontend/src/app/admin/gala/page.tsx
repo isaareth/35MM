@@ -137,15 +137,6 @@ export default function AdminGalaPage() {
           </a>
         </div>
 
-        <div className="mb-10">
-          <ExtrasPocket
-            registrations={registrations}
-            onChanged={async () => {
-              await fetchAll();
-            }}
-          />
-        </div>
-
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-px bg-white/10 mb-10">
           <Kpi
             label="Invitaciones enviadas"
@@ -167,6 +158,15 @@ export default function AdminGalaPage() {
             label="Asistencia"
             value={`${summary.attendance_rate}%`}
             hint="De los asistentes confirmados"
+          />
+        </div>
+
+        <div className="mb-10">
+          <ExtrasPocket
+            registrations={registrations}
+            onChanged={async () => {
+              await fetchAll();
+            }}
           />
         </div>
 
