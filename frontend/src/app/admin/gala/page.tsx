@@ -137,6 +137,15 @@ export default function AdminGalaPage() {
           </a>
         </div>
 
+        <div className="mb-10">
+          <ExtrasPocket
+            registrations={registrations}
+            onChanged={async () => {
+              await fetchAll();
+            }}
+          />
+        </div>
+
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-px bg-white/10 mb-10">
           <Kpi
             label="Invitaciones enviadas"
@@ -215,15 +224,6 @@ export default function AdminGalaPage() {
         {teams.length === 0 && (
           <p className="font-body text-white/40 text-sm py-6 text-center">Sin resultados.</p>
         )}
-
-        <div className="mb-6">
-          <ExtrasPocket
-            registrations={registrations}
-            onChanged={async () => {
-              await fetchAll();
-            }}
-          />
-        </div>
 
         <Card
           title="Acompañantes registrados"
