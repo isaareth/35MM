@@ -146,9 +146,19 @@ class GalaTicket(models.Model):
         DECLINED = "DECLINED", "No asiste"
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    # Null for "extra" invitations (actors, collaborators...) that belong to no team's roster.
     participant = models.OneToOneField(
-        Participant, related_name="gala_ticket", on_delete=models.CASCADE
+        Participant, related_name="gala_ticket", on_delete=models.CASCADE, null=True, blank=True
     )
+    sponsor_registration = models.ForeignKey(
+        Registration,
+        related_name="extra_gala_tickets",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        help_text="Solo para invitados extra: el equipo (corto) que los invita, sin ser integrantes.",
+    )
+    group = models.CharField(max_length=60, blank=True, help_text='Etiqueta libre, ej. "Jurado" o "Actores".')
     guest_name = models.CharField(max_length=200)
     guest_email = models.EmailField(db_index=True)
 
@@ -176,8 +186,21 @@ class GalaTicket(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                Lower("guest_email"),
+                condition=models.Q(participant__isnull=True),
+                name="unique_extra_gala_ticket_email",
+            )
+        ]
+
     def __str__(self) -> str:
         return f"{self.guest_name} ({self.get_rsvp_status_display()})"
+
+    @property
+    def is_extra(self) -> bool:
+        return self.participant_id is None
 
     @property
     def remaining_capacity(self) -> int:

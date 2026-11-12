@@ -21,7 +21,7 @@ from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 
 from .email import EmailDeliveryError, deliver
-from .models import GalaTicket, Participant
+from .models import GalaTicket, Participant, Registration
 
 logger = logging.getLogger("registrations.gala")
 
@@ -245,6 +245,80 @@ def send_test_email(to_email: str) -> None:
     )
 
 
+# ------------------------------------------------------------- extras pocket
+
+MAX_EXTRAS_PER_REQUEST = 100
+
+
+def team_label(ticket: GalaTicket) -> str:
+    """What door staff and the admin see next to a guest: the film title (or its
+    leader) for team members, the inviting film for extras, else their group."""
+    registration = ticket.participant.registration if ticket.participant_id else ticket.sponsor_registration
+    if registration:
+        leader = registration.leader
+        label = registration.film_title or (leader.full_name if leader else "")
+        return f"{label} · {ticket.group}" if ticket.participant_id is None and ticket.group else label
+    return ticket.group or "Invitado extra"
+
+
+def add_extras(guests, sponsor: Registration | None = None, group: str = ""):
+    """Creates unsent extra invitations. Returns (created tickets, skipped
+    [{"row", "name", "email", "reason"}]). A bad row never raises: it is
+    reported and the rest are still added."""
+    if not isinstance(guests, list) or not guests:
+        raise GalaError("INVALID_EXTRAS", "Envía al menos una persona.", 400)
+    if len(guests) > MAX_EXTRAS_PER_REQUEST:
+        raise GalaError("INVALID_EXTRAS", f"Máximo {MAX_EXTRAS_PER_REQUEST} personas por vez.", 400)
+
+    group = (group or "").strip()
+    if len(group) > 60:
+        raise GalaError("INVALID_EXTRAS", "El grupo es demasiado largo (máximo 60 caracteres).", 400)
+
+    team_emails = {e.lower() for e in Participant.objects.values_list("institutional_email", flat=True)}
+    taken = {
+        e.lower() for e in GalaTicket.objects.filter(participant__isnull=True).values_list("guest_email", flat=True)
+    }
+    expires = ticket_expiry()
+    created, skipped = [], []
+
+    for index, row in enumerate(guests, start=1):
+        row = row if isinstance(row, dict) else {}
+        name = " ".join(str(row.get("name") or "").split())
+        email = str(row.get("email") or "").strip()
+        lowered = email.lower()
+
+        def skip(reason):
+            skipped.append({"row": index, "name": name, "email": email, "reason": reason})
+
+        if not name:
+            skip("Falta el nombre.")
+            continue
+        if len(name) > 200:
+            skip("El nombre es demasiado largo.")
+            continue
+        try:
+            validate_email(email)
+        except ValidationError:
+            skip("El correo no es válido.")
+            continue
+        if lowered in taken:
+            skip("Ya está en el bolsillo de extras.")
+        elif lowered in team_emails:
+            skip("Ya tiene invitación como integrante de un equipo.")
+        else:
+            taken.add(lowered)
+            created.append(
+                GalaTicket.objects.create(
+                    guest_name=name,
+                    guest_email=email,
+                    sponsor_registration=sponsor,
+                    group=group,
+                    expires_at=expires,
+                )
+            )
+    return created, skipped
+
+
 # ---------------------------------------------------------------------- RSVP
 
 def _valid_phone(value: str) -> bool:
@@ -389,7 +463,9 @@ def summary() -> dict:
     def percent(part, whole):
         return round(100 * part / whole) if whole else 0
 
+    extras = tickets.filter(participant__isnull=True)
     return {
+        "extras": {"total": extras.count(), "sent": extras.filter(sent_at__isnull=False).count()},
         "eligible_people": Participant.objects.count(),
         "invitations_created": totals["created"] or 0,
         "invitations_sent": sent,

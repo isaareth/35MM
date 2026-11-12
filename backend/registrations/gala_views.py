@@ -97,6 +97,29 @@ class GalaInvitationQrView(APIView):
 
 # -------------------------------------------------------------------- admin
 
+def _send_batch(request, tickets, describe, resend=False):
+    """Emails each ticket not yet sent (or all of them when `resend`), stopping at
+    Gmail's daily quota so the rest stay pending for tomorrow."""
+    results, reason, stopped = [], "", False
+    for ticket in tickets:
+        if ticket.sent_at and not resend:
+            continue
+        qr_url = request.build_absolute_uri(f"/api/gala/invitations/{ticket.id}/qr.png")
+        outcome = gala.send_invitation(ticket, qr_url)
+        results.append({**describe(ticket), "sent": outcome.ok})
+        reason = reason or outcome.reason
+        if outcome.code == "quota":
+            stopped = True
+            break
+    return {
+        "sent_count": sum(1 for r in results if r["sent"]),
+        "failed_count": sum(1 for r in results if not r["sent"]),
+        "results": results,
+        "error": reason,
+        "stopped_by_quota": stopped,
+    }
+
+
 class AdminGalaSendView(APIView):
     """POST /api/admin/registrations/<uuid>/gala-invitations/ — emails each
     member of a team their own QR invitation.
@@ -118,29 +141,104 @@ class AdminGalaSendView(APIView):
             if not members:
                 return Response({"detail": "Ese integrante no pertenece al equipo."}, status=400)
 
-        results, reason, stopped = [], "", False
-        for member in members:
-            ticket = gala.ensure_ticket(member)
-            if ticket.sent_at and not resend:
-                continue
-            qr_url = request.build_absolute_uri(f"/api/gala/invitations/{ticket.id}/qr.png")
-            outcome = gala.send_invitation(ticket, qr_url)
-            results.append({"participant_id": member.id, "name": member.full_name, "sent": outcome.ok})
-            reason = reason or outcome.reason
-            if outcome.code == "quota":
-                # The mailbox is out of sends for today: stop instead of failing
-                # every remaining member; they stay pending for tomorrow.
-                stopped = True
-                break
-
+        by_member = {m.id: m for m in members}
+        tickets = [gala.ensure_ticket(m) for m in members]
         return Response(
-            {
-                "sent_count": sum(1 for r in results if r["sent"]),
-                "failed_count": sum(1 for r in results if not r["sent"]),
-                "results": results,
-                "error": reason,
-                "stopped_by_quota": stopped,
-            }
+            _send_batch(
+                request,
+                tickets,
+                lambda t: {"participant_id": t.participant_id, "name": by_member[t.participant_id].full_name},
+                resend=resend,
+            )
+        )
+
+
+def _extra_row(ticket: GalaTicket) -> dict:
+    sponsor = ticket.sponsor_registration
+    return {
+        "id": str(ticket.id),
+        "guest_name": ticket.guest_name,
+        "guest_email": ticket.guest_email,
+        "group": ticket.group,
+        "sponsor_registration_id": str(sponsor.id) if sponsor else None,
+        "team": gala.team_label(ticket),
+        "sent_at": ticket.sent_at,
+        "rsvp_status": ticket.rsvp_status,
+        "has_plus_one": ticket.has_plus_one,
+        "plus_one_name": ticket.plus_one_name,
+        "used_capacity": ticket.used_capacity,
+        "total_capacity": ticket.total_capacity,
+        "checkin_at": ticket.checkin_at,
+    }
+
+
+def _extras_queryset():
+    return (
+        GalaTicket.objects.filter(participant__isnull=True)
+        .select_related("sponsor_registration")
+        .order_by("created_at")
+    )
+
+
+class AdminGalaExtrasView(APIView):
+    """GET lists the extras pocket; POST adds people to it (unsent).
+
+    POST body: {"guests": [{"name", "email"}...], "registration_id": uuid|null,
+    "group": str}. Bad rows are reported in `skipped`; the rest are added."""
+
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        return Response([_extra_row(t) for t in _extras_queryset()])
+
+    def post(self, request):
+        sponsor = None
+        sponsor_id = request.data.get("registration_id")
+        if sponsor_id:
+            try:
+                sponsor = Registration.objects.get(pk=sponsor_id)
+            except (Registration.DoesNotExist, ValueError, ValidationError):
+                return Response({"detail": "Ese equipo no existe."}, status=400)
+        try:
+            created, skipped = gala.add_extras(request.data.get("guests"), sponsor, request.data.get("group"))
+        except gala.GalaError as error:
+            return Response({"detail": error.message}, status=error.http_status)
+        return Response(
+            {"created_count": len(created), "skipped": skipped, "created": [_extra_row(t) for t in created]},
+            status=201 if created else 200,
+        )
+
+
+class AdminGalaExtraDetailView(APIView):
+    """DELETE /api/admin/gala/extras/<uuid>/ — removes an extra who has not
+    entered yet (an invitation already used is a record of attendance)."""
+
+    permission_classes = [IsAdminUser]
+
+    def delete(self, request, pk):
+        ticket = get_object_or_404(GalaTicket, pk=pk, participant__isnull=True)
+        if ticket.used_capacity > 0:
+            return Response({"detail": "Esta persona ya ingresó a la gala; no se puede eliminar."}, status=409)
+        ticket.delete()
+        return Response(status=204)
+
+
+class AdminGalaExtrasSendView(APIView):
+    """POST /api/admin/gala/extras/send/ — emails every extra not yet sent, or
+    only {"ticket_id": uuid} (a resend, even if already sent)."""
+
+    permission_classes = [IsAdminUser]
+
+    def post(self, request):
+        tickets = list(_extras_queryset())
+        ticket_id = request.data.get("ticket_id")
+        resend = ticket_id is not None
+        if resend:
+            tickets = [t for t in tickets if str(t.id) == str(ticket_id)]
+            if not tickets:
+                return Response({"detail": "Esa invitación extra no existe."}, status=400)
+        return Response(
+            _send_batch(request, tickets, lambda t: {"ticket_id": str(t.id), "name": t.guest_name}, resend=resend)
         )
 
 
@@ -156,13 +254,11 @@ class AdminGalaTicketLookupView(APIView):
         except gala.GalaError as error:
             return _error(error)
 
-        registration = ticket.participant.registration
-        leader = registration.leader
         return Response(
             {
                 "status": gala.SUCCESS_STATUS,
                 "guest_name": ticket.guest_name,
-                "team": registration.film_title or (leader.full_name if leader else ""),
+                "team": gala.team_label(ticket),
                 "rsvp_status": ticket.rsvp_status,
                 "has_plus_one": ticket.has_plus_one,
                 "plus_one_name": ticket.plus_one_name,

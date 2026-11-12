@@ -126,6 +126,7 @@ export interface SendGalaResult {
 }
 
 export interface GalaSummary {
+  extras: { total: number; sent: number };
   eligible_people: number;
   invitations_created: number;
   invitations_sent: number;
@@ -176,4 +177,58 @@ const UUID_RE = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
 /** The ticket token from a scanned QR (the invitation URL) or a pasted token. */
 export function extractToken(text: string): string | null {
   return text.match(UUID_RE)?.[0].toLowerCase() ?? null;
+}
+
+/** One person in the extras pocket (an invitation that belongs to no team's roster). */
+export interface ExtraTicket {
+  id: string;
+  guest_name: string;
+  guest_email: string;
+  group: string;
+  sponsor_registration_id: string | null;
+  team: string;
+  sent_at: string | null;
+  rsvp_status: Rsvp;
+  has_plus_one: boolean;
+  plus_one_name: string;
+  used_capacity: number;
+  total_capacity: number;
+  checkin_at: string | null;
+}
+
+export interface AddExtrasResult {
+  created_count: number;
+  skipped: { row: number; name: string; email: string; reason: string }[];
+  created: ExtraTicket[];
+}
+
+export interface SendExtrasResult {
+  sent_count: number;
+  failed_count: number;
+  results: { ticket_id: string; name: string; sent: boolean }[];
+  error: string;
+  stopped_by_quota: boolean;
+}
+
+export interface ParsedGuest {
+  name: string;
+  email: string;
+}
+
+/** Reads one guest per line: "Nombre, correo" in any order, separated by commas,
+ * semicolons or tabs (so a pasted spreadsheet works). Lines without an "@" are
+ * returned as `bad` so the admin sees what was ignored. */
+export function parseGuestLines(text: string): { guests: ParsedGuest[]; bad: string[] } {
+  const guests: ParsedGuest[] = [];
+  const bad: string[] = [];
+  for (const raw of text.split(/\r?\n/)) {
+    const line = raw.trim();
+    if (!line) continue;
+    const parts = line.split(/[,;\t]/).map((p) => p.trim()).filter(Boolean);
+    const email = parts.find((p) => p.includes("@"));
+    const name = parts.find((p) => !p.includes("@"));
+    if (email && name) guests.push({ name, email });
+    else bad.push(line);
+  }
+  return { guests, bad };
 }

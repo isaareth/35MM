@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import AdminHeader from "@/components/AdminHeader";
+import ExtrasPocket from "@/components/admin/ExtrasPocket";
 import GalaTeamPanel from "@/components/admin/GalaTeamPanel";
 import { Card, Kpi } from "@/components/admin/charts";
 import { adminFetch, getToken, leaderOf, type RegistrationRecord } from "@/lib/adminApi";
@@ -139,8 +140,8 @@ export default function AdminGalaPage() {
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-px bg-white/10 mb-10">
           <Kpi
             label="Invitaciones enviadas"
-            value={`${summary.invitations_sent} / ${summary.eligible_people}`}
-            hint="Integrantes de equipos"
+            value={`${summary.invitations_sent} / ${summary.eligible_people + summary.extras.total}`}
+            hint={`Integrantes de equipos${summary.extras.total ? ` + ${summary.extras.total} extras` : ""}`}
           />
           <Kpi
             label="Confirmaron"
@@ -214,6 +215,15 @@ export default function AdminGalaPage() {
         {teams.length === 0 && (
           <p className="font-body text-white/40 text-sm py-6 text-center">Sin resultados.</p>
         )}
+
+        <div className="mb-6">
+          <ExtrasPocket
+            registrations={registrations}
+            onChanged={async () => {
+              await fetchAll();
+            }}
+          />
+        </div>
 
         <Card
           title="Acompañantes registrados"

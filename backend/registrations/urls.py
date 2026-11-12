@@ -2,6 +2,9 @@ from django.urls import path
 
 from .auth_views import LoginView, LogoutView
 from .gala_views import (
+    AdminGalaExtraDetailView,
+    AdminGalaExtrasSendView,
+    AdminGalaExtrasView,
     AdminEmailTestView,
     AdminGalaSendView,
     AdminGalaSummaryView,
@@ -89,6 +92,9 @@ urlpatterns = [
         AdminGalaTicketLookupView.as_view(),
         name="admin-gala-ticket",
     ),
+    path("admin/gala/extras/", AdminGalaExtrasView.as_view(), name="admin-gala-extras"),
+    path("admin/gala/extras/send/", AdminGalaExtrasSendView.as_view(), name="admin-gala-extras-send"),
+    path("admin/gala/extras/<uuid:pk>/", AdminGalaExtraDetailView.as_view(), name="admin-gala-extra"),
     path("admin/email/test/", AdminEmailTestView.as_view(), name="admin-email-test"),
     path("admin/gala/validate/", AdminGalaValidateView.as_view(), name="admin-gala-validate"),
     path("admin/gala/summary/", AdminGalaSummaryView.as_view(), name="admin-gala-summary"),
