@@ -10,6 +10,7 @@ from rest_framework.views import APIView
 from . import gala
 from .email import EmailDeliveryError
 from .models import GalaTicket, Registration
+from .permissions import IsAdminOrDoorStaff
 
 
 class RsvpThrottle(AnonRateThrottle):
@@ -246,7 +247,7 @@ class AdminGalaTicketLookupView(APIView):
     """GET /api/admin/gala/tickets/<token>/ — what the door staff sees after a
     scan, before deciding how many people to admit. Changes nothing."""
 
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAdminOrDoorStaff]
 
     def get(self, request, token):
         try:
@@ -274,7 +275,7 @@ class AdminGalaTicketLookupView(APIView):
 class AdminGalaValidateView(APIView):
     """POST /api/admin/gala/validate/ {"token": str, "checkin_count": 1|2}"""
 
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAdminOrDoorStaff]
 
     def post(self, request):
         try:

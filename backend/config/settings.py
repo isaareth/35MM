@@ -132,6 +132,8 @@ REST_FRAMEWORK = {
         "anon": "5/hour",
         "talk": "60/hour",
         "rsvp": "60/hour",
+        # Several staff sharing the venue wifi sign in from one IP; 5/hour would lock them out.
+        "login": "30/hour",
     },
 }
 

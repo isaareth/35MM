@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { getToken, setSession } from "@/lib/adminApi";
+import { getRole, getToken, setSession } from "@/lib/adminApi";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -12,7 +12,7 @@ export default function AdminLoginPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (getToken()) router.replace("/admin");
+    if (getToken()) router.replace(getRole() === "door" ? "/admin/escaner" : "/admin");
   }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -37,8 +37,9 @@ export default function AdminLoginPage() {
       }
 
       const data = await res.json();
-      setSession(data.token, data.username);
-      router.push("/admin");
+      const role = data.role === "door" ? "door" : "admin";
+      setSession(data.token, data.username, role);
+      router.push(role === "door" ? "/admin/escaner" : "/admin");
     } catch {
       setError("No pudimos conectar con el servidor.");
       setLoading(false);

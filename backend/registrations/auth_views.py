@@ -2,8 +2,15 @@ from django.contrib.auth import authenticate, login, logout
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.throttling import AnonRateThrottle
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
+from .permissions import is_door_staff
+
+
+class LoginThrottle(AnonRateThrottle):
+    scope = "login"
 
 
 class LoginView(APIView):
@@ -19,18 +26,20 @@ class LoginView(APIView):
     """
 
     permission_classes = [AllowAny]
+    throttle_classes = [LoginThrottle]
 
     def post(self, request):
         username = request.data.get("username")
         password = request.data.get("password")
         user = authenticate(request, username=username, password=password)
 
-        if user is None or not user.is_staff:
+        door_only = user is not None and not user.is_staff and is_door_staff(user)
+        if user is None or not (user.is_staff or door_only):
             return Response({"detail": "Credenciales inválidas."}, status=status.HTTP_401_UNAUTHORIZED)
 
         login(request, user)
         token, _ = Token.objects.get_or_create(user=user)
-        return Response({"username": user.username, "token": token.key})
+        return Response({"username": user.username, "token": token.key, "role": "door" if door_only else "admin"})
 
 
 class LogoutView(APIView):

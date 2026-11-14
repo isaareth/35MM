@@ -2,6 +2,9 @@ import type { GalaInfo } from "@/lib/gala";
 
 const TOKEN_KEY = "35mm_admin_token";
 const USERNAME_KEY = "35mm_admin_username";
+const ROLE_KEY = "35mm_admin_role";
+
+export type Role = "admin" | "door";
 
 export function getToken(): string | null {
   if (typeof window === "undefined") return null;
@@ -13,14 +16,22 @@ export function getUsername(): string | null {
   return window.localStorage.getItem(USERNAME_KEY);
 }
 
-export function setSession(token: string, username: string) {
+/** "door" accounts can only use the gate scanner; everything else is "admin". */
+export function getRole(): Role {
+  if (typeof window === "undefined") return "admin";
+  return window.localStorage.getItem(ROLE_KEY) === "door" ? "door" : "admin";
+}
+
+export function setSession(token: string, username: string, role: Role = "admin") {
   window.localStorage.setItem(TOKEN_KEY, token);
   window.localStorage.setItem(USERNAME_KEY, username);
+  window.localStorage.setItem(ROLE_KEY, role);
 }
 
 export function clearSession() {
   window.localStorage.removeItem(TOKEN_KEY);
   window.localStorage.removeItem(USERNAME_KEY);
+  window.localStorage.removeItem(ROLE_KEY);
 }
 
 function apiUrl(path: string): string {

@@ -1,7 +1,8 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { adminFetch, clearSession, getUsername } from "@/lib/adminApi";
+import { adminFetch, clearSession, getRole, getUsername, type Role } from "@/lib/adminApi";
 
 export default function AdminHeader({
   backHref,
@@ -11,6 +12,9 @@ export default function AdminHeader({
   backLabel: string;
 }) {
   const router = useRouter();
+  // Read after mount so the server-rendered markup matches the first client render.
+  const [role, setRole] = useState<Role>("admin");
+  useEffect(() => setRole(getRole()), []);
 
   const handleLogout = async () => {
     await adminFetch("/api/auth/logout/", { method: "POST" }).catch(() => {});
@@ -23,16 +27,18 @@ export default function AdminHeader({
       <div className="flex items-baseline gap-4">
         <span className="font-display font-black text-2xl text-purple">35mm</span>
         <span className="font-body text-xs text-white/40 tracking-[0.3em] uppercase hidden md:inline">
-          Panel administrativo
+          {role === "door" ? "Entrada" : "Panel administrativo"}
         </span>
       </div>
       <div className="flex items-center gap-4">
-        <a
-          href={backHref}
-          className="font-body text-xs tracking-widest uppercase text-white/50 hover:text-neon transition-colors"
-        >
-          {backLabel}
-        </a>
+        {role === "admin" && (
+          <a
+            href={backHref}
+            className="font-body text-xs tracking-widest uppercase text-white/50 hover:text-neon transition-colors"
+          >
+            {backLabel}
+          </a>
+        )}
         <span className="font-body text-xs text-white/40 hidden md:inline">{getUsername()}</span>
         <button
           onClick={handleLogout}
