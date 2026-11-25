@@ -3,11 +3,10 @@ from io import StringIO
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.core.management import CommandError, call_command
-from django.test import TestCase
 from rest_framework.test import APIClient
 
 from . import gala
-from .test_gala import admin_client, make_team, make_ticket
+from .test_gala import GalaTestCase, admin_client, make_team, make_ticket
 
 
 class ThrottleReset:
@@ -31,7 +30,7 @@ def door_client(username="sara"):
     return client
 
 
-class DoorAccountTests(ThrottleReset, TestCase):
+class DoorAccountTests(ThrottleReset, GalaTestCase):
     def test_command_creates_a_non_staff_user_in_the_door_group_with_a_usable_password(self):
         username, password = make_door_user("Alejandra")
         user = get_user_model().objects.get(username="alejandra")
@@ -83,7 +82,7 @@ class DoorAccountTests(ThrottleReset, TestCase):
         self.assertIn(client.get(f"/api/admin/gala/tickets/{ticket.id}/").status_code, (401, 403))
 
 
-class DoorPermissionTests(ThrottleReset, TestCase):
+class DoorPermissionTests(ThrottleReset, GalaTestCase):
     def test_door_staff_can_scan_and_admit(self):
         client = door_client()
         ticket = make_ticket()
@@ -147,7 +146,7 @@ class DoorPermissionTests(ThrottleReset, TestCase):
         self.assertEqual(gala.lookup_ticket(ticket.id).used_capacity, 0)
 
 
-class LoginThrottleTests(ThrottleReset, TestCase):
+class LoginThrottleTests(ThrottleReset, GalaTestCase):
     def test_several_staff_can_sign_in_from_the_same_connection_but_guessing_is_still_limited(self):
         username, password = make_door_user("sara")
         client = APIClient()

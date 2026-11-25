@@ -16,6 +16,15 @@ from .email import EmailDeliveryError, deliver
 from .models import GalaTicket, Participant, Registration
 
 
+# Invitations expire on the real gala date; tests must not depend on today's date.
+FAR_FUTURE = "2099-12-31T23:59:59-05:00"
+
+
+@override_settings(GALA_TICKET_EXPIRES_AT=FAR_FUTURE)
+class GalaTestCase(TestCase):
+    """Base for every test that creates gala tickets."""
+
+
 def make_team(emails=("lead@x.co", "b@x.co", "c@x.co", "d@x.co"), film=""):
     registration = Registration.objects.create(
         accepted_terms=True, confirmed_eligibility=True, film_submitted=bool(film), film_title=film
@@ -45,10 +54,12 @@ def make_ticket(email="guest@x.co", **overrides):
     return ticket
 
 
-class TicketIssuingTests(TestCase):
+class TicketIssuingTests(GalaTestCase):
     def test_one_ticket_per_participant_created_once_with_the_configured_expiry(self):
         participant = make_team().participants.first()
-        first = gala.ensure_ticket(participant)
+        # the production setting: the invitation ends at the close of Nov 20 in Colombia
+        with override_settings(GALA_TICKET_EXPIRES_AT="2026-11-20T23:59:59-05:00"):
+            first = gala.ensure_ticket(participant)
         self.assertEqual(gala.ensure_ticket(participant).id, first.id)
         self.assertEqual(GalaTicket.objects.count(), 1)
         self.assertEqual(first.total_capacity, 2)
@@ -66,7 +77,7 @@ class TicketIssuingTests(TestCase):
         self.assertEqual(client.get(f"/api/gala/invitations/{uuid.uuid4()}/qr.png").status_code, 404)
 
 
-class EmailTests(TestCase):
+class EmailTests(GalaTestCase):
     def test_email_links_to_the_invitation_embeds_the_qr_and_escapes_the_name(self):
         ticket = make_ticket(guest_name="<b>Ana</b>")
         subject, text, body = gala.build_invitation_email(ticket, "https://api.example/qr.png")
@@ -159,7 +170,7 @@ class EmailTests(TestCase):
             deliver("to@x.co", "s", "t")
 
 
-class AdminSendTests(TestCase):
+class AdminSendTests(GalaTestCase):
     def setUp(self):
         self.client = admin_client()
         self.team = make_team()
@@ -228,7 +239,7 @@ class AdminSendTests(TestCase):
         self.assertTrue(all(m["gala"] is None for m in untouched["participants"]))
 
 
-class RsvpTests(TestCase):
+class RsvpTests(GalaTestCase):
     def setUp(self):
         self.ticket = make_ticket()
         self.url = f"/api/gala/invitations/{self.ticket.id}/rsvp/"
@@ -342,7 +353,7 @@ class RsvpTests(TestCase):
         self.assertTrue(self.client.get(f"/api/gala/invitations/{self.ticket.id}/").json()["expired"])
 
 
-class DoorCheckinTests(TestCase):
+class DoorCheckinTests(GalaTestCase):
     def setUp(self):
         self.client = admin_client()
         self.ticket = make_ticket()
@@ -414,7 +425,7 @@ class DoorCheckinTests(TestCase):
         self.assertEqual(self.client.get("/api/admin/gala/tickets/basura/").status_code, 404)
 
 
-class SummaryTests(TestCase):
+class SummaryTests(GalaTestCase):
     def test_metrics(self):
         client = admin_client()
         team = make_team(("a@x.co", "b@x.co", "c@x.co", "d@x.co"))
@@ -448,7 +459,7 @@ class SummaryTests(TestCase):
         self.assertEqual((data["invitations_sent"], data["confirmed_attendees"], data["attendance_rate"], data["plus_ones"]), (0, 0, 0, []))
 
 
-class EmailTestEndpointTests(TestCase):
+class EmailTestEndpointTests(GalaTestCase):
     def test_requires_admin(self):
         self.assertEqual(APIClient().post("/api/admin/email/test/", {"to": "a@x.co"}, format="json").status_code, 401)
 
@@ -473,7 +484,7 @@ class EmailTestEndpointTests(TestCase):
         self.assertNotIn("secret-url", response.content.decode())
 
 
-class AppsScriptWebhookTests(TestCase):
+class AppsScriptWebhookTests(GalaTestCase):
     """Apps Script answers every POST with a 302 to a "echo" URL and always with
     HTTP 200, so failures arrive as {"ok": false}. Exercised against a real
     local server that behaves the same way."""
@@ -536,7 +547,7 @@ class AppsScriptWebhookTests(TestCase):
             deliver("to@x.co", "s", "t")  # does not raise
 
 
-class QuotaHandlingTests(TestCase):
+class QuotaHandlingTests(GalaTestCase):
     def setUp(self):
         self.client = admin_client()
         self.team = make_team()

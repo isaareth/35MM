@@ -19,7 +19,7 @@ from .excel import (
     event_registrations_filename,
     registrations_filename,
 )
-from .models import Event, EventRegistration, Participant, Registration
+from .models import Event, EventRegistration, GalaTicket, Participant, Registration
 from .serializers import (
     EventRegistrationCreateSerializer,
     EventRegistrationReadSerializer,
@@ -204,9 +204,10 @@ class AdminRegistrationExportView(APIView):
 
     def get(self, request):
         registrations = Registration.objects.all().order_by("created_at").prefetch_related(
-            "participants"
+            "participants__gala_ticket"
         )
-        workbook = build_registrations_workbook(registrations)
+        extras = GalaTicket.objects.filter(participant__isnull=True).select_related("sponsor_registration")
+        workbook = build_registrations_workbook(registrations, extras)
 
         response = HttpResponse(
             content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"

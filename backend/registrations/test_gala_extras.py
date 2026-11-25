@@ -1,12 +1,11 @@
 from unittest import mock
 
-from django.test import TestCase
 from rest_framework.test import APIClient
 
 from . import gala
 from .email import EmailDeliveryError
 from .models import GalaTicket
-from .test_gala import admin_client, make_team
+from .test_gala import GalaTestCase, admin_client, make_team
 
 EXTRAS = "/api/admin/gala/extras/"
 
@@ -15,7 +14,7 @@ def add(client, guests, **extra):
     return client.post(EXTRAS, {"guests": guests, **extra}, format="json")
 
 
-class ExtrasPocketTests(TestCase):
+class ExtrasPocketTests(GalaTestCase):
     def setUp(self):
         self.client = admin_client()
 
